@@ -1,0 +1,19 @@
+# Cursor rules for Relia Intranet
+
+The canonical context for this repo lives in `CLAUDE.md` at the root. Read it before suggesting any non-trivial change.
+
+Key rules (full list in CLAUDE.md):
+- Never commit secrets.
+- Never bypass Supabase RLS. Service-role key is server-only.
+- Migrations are append-only. Never edit a merged migration.
+- Architectural choices require an ADR in `docs/decisions/`.
+- Linear is the source of truth for work. Branch names: `REL-123-short-slug`.
+- No `any` in TypeScript without a justifying comment.
+- Tests for every new API route or server action (Vitest, co-located).
+
+When suggesting code:
+- Prefer server components for data fetching.
+- Use `@/lib/supabase/server` for server-side Supabase client, `@/lib/supabase/client` for browser.
+- For new agents or skills, add a markdown file under `docs/agents/` or `docs/skills/` and link it from `CLAUDE.md`.
+
+When in doubt, open `CLAUDE.md` and the relevant `docs/decisions/*.md` files.

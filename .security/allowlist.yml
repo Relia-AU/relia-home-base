@@ -1,0 +1,22 @@
+# Security allowlist
+#
+# Entries here suppress findings from the security agents (Semgrep, Snyk,
+# Socket, Gitleaks). Every entry must include all required fields. Entries
+# expire after 90 days unless renewed.
+#
+# Reviewed quarterly - log review in docs/runbooks/security-log.md.
+
+entries: []
+
+# Example entry shape (uncomment and fill when needed):
+#
+# entries:
+#   - id: snyk-SNYK-JS-LODASH-1234
+#     tool: snyk
+#     reason: |
+#       Vulnerable code path is not reachable from our usage of lodash
+#       (we only use _.get and _.set). Tracked in REL-456 for upgrade
+#       once next minor is released.
+#     accepted_by: alex@relia.example
+#     accepted_at: 2026-04-18
+#     review_by: 2026-07-17

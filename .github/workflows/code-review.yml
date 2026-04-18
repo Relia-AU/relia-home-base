@@ -1,0 +1,37 @@
+name: Code Review Agent
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    name: Claude code review
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-ai-review') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # See docs/agents/code-review-agent.md for the contract
+          prompt_file: .github/prompts/code-review.md
+          mode: comment
+
+      - name: Linear linkage check
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          BRANCH="${{ github.head_ref }}"
+          if ! echo "$TITLE $BRANCH" | grep -qE 'REL-[0-9]+'; then
+            echo "::warning::PR title or branch does not reference a Linear issue (REL-NNN)"
+          fi

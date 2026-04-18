@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(export SUPABASE_ACCESS_TOKEN=sbp_b13d02254100e0ec41b2b743611c6142e20e9c90)",
+      "Bash(~/supabase.exe projects *)"
     ]
   }
 }

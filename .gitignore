@@ -1,1 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+.vercel/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Testing
+coverage/
+
+# Environment - NEVER commit
 .env
+.env.local
+.env.*.local
+!.env.local.example
+
+# Sentry source maps auth
+.sentryclirc
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Supabase local
+supabase/.branches
+supabase/.temp
