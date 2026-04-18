@@ -1161,7 +1161,41 @@ function ActivityView() {
     setAdding(false);
   };
 
+  const [whoFilter, setWhoFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [editingId, setEditingId] = useState<string|null>(null);
+  const [editForm, setEditForm] = useState({ who:'', what:'', ref:'', extra:'' });
+  const [showAll, setShowAll] = useState(false);
+
   const all = [...manualEntries, ...linearEntries].sort((a,b) => b.whenTs - a.whenTs);
+
+  const people = [...new Set(all.map(a => a.who))].sort();
+  const actionTypes = [...new Set(all.map(a => a.what))].sort();
+
+  const filtered = all.filter(a => {
+    if (whoFilter !== 'all' && a.who !== whoFilter) return false;
+    if (typeFilter !== 'all' && a.what !== typeFilter) return false;
+    if (sourceFilter !== 'all' && a.source !== sourceFilter) return false;
+    return true;
+  });
+
+  const shown = showAll ? filtered : filtered.slice(0, 30);
+
+  const startEdit = (a: ActivityEntry) => {
+    setEditingId(a.id);
+    setEditForm({ who: a.who, what: a.what, ref: a.ref, extra: a.extra.replace(/^ — /,'') });
+  };
+
+  const saveEdit = () => {
+    setManualEntries(es => es.map(e => e.id === editingId ? { ...e, ...editForm, extra: editForm.extra ? ` — ${editForm.extra}` : '' } : e));
+    setEditingId(null);
+  };
+
+  const deleteEntry = (id: string) => {
+    setManualEntries(es => es.filter(e => e.id !== id));
+    if (editingId === id) setEditingId(null);
+  };
 
   return (
     <div className="hub-page">
@@ -1206,26 +1240,75 @@ function ActivityView() {
         </div>
       )}
 
+      {/* Filters */}
+      <div style={{ display:'flex', gap:10, marginBottom:16, flexWrap:'wrap', alignItems:'center' }}>
+        <select value={whoFilter} onChange={e => setWhoFilter(e.target.value)}
+          style={{ fontFamily:'var(--font-body)', fontSize:12, padding:'5px 10px', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', background:'var(--bg-card)', color: whoFilter==='all' ? 'var(--fg3)' : 'var(--fg1)', cursor:'pointer', outline:'none' }}>
+          <option value="all">All people</option>
+          {people.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+          style={{ fontFamily:'var(--font-body)', fontSize:12, padding:'5px 10px', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', background:'var(--bg-card)', color: typeFilter==='all' ? 'var(--fg3)' : 'var(--fg1)', cursor:'pointer', outline:'none' }}>
+          <option value="all">All actions</option>
+          {actionTypes.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
+          style={{ fontFamily:'var(--font-body)', fontSize:12, padding:'5px 10px', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', background:'var(--bg-card)', color: sourceFilter==='all' ? 'var(--fg3)' : 'var(--fg1)', cursor:'pointer', outline:'none' }}>
+          <option value="all">All sources</option>
+          <option value="linear">Linear</option>
+          <option value="manual">Manual</option>
+        </select>
+        {(whoFilter !== 'all' || typeFilter !== 'all' || sourceFilter !== 'all') && (
+          <button className="btn btn-ghost btn-sm" onClick={() => { setWhoFilter('all'); setTypeFilter('all'); setSourceFilter('all'); }}>Clear filters</button>
+        )}
+        <span className="mono" style={{ marginLeft:'auto' }}>{filtered.length} entries</span>
+      </div>
+
       <div className="data-card">
         {loading && <div style={{ padding:'20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>Loading from Linear…</div>}
-        {!loading && all.length === 0 && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>No activity yet.</div>}
-        {all.map(a => (
-          <div key={a.id} className="feed-row" style={{ gridTemplateColumns:'80px 1fr auto' }}>
-            <span className="feed-when">{a.when}</span>
-            <span>
-              <span className="feed-who">{a.who}</span>{' '}
-              <span style={{ color:'var(--fg2)' }}>{a.what} </span>
-              {a.issueUrl
-                ? <a href={a.issueUrl} target="_blank" rel="noopener noreferrer" className="feed-ref" style={{ textDecoration:'none' }}>{a.ref}</a>
-                : <span className="feed-ref">{a.ref}</span>
-              }
-              <span style={{ color:'var(--fg2)' }}>{a.extra}</span>
-            </span>
-            <span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.08em', textTransform:'uppercase', color: a.source==='linear' ? 'var(--blue)' : 'var(--fg3)', padding:'2px 6px', borderRadius:3, background: a.source==='linear' ? 'var(--blue-soft)' : 'var(--slate)' }}>
-              {a.source === 'linear' ? 'Linear' : 'Manual'}
-            </span>
+        {!loading && filtered.length === 0 && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>No activity matches these filters.</div>}
+        {shown.map(a => (
+          <div key={a.id}>
+            {editingId === a.id ? (
+              <div style={{ padding:'10px 20px', borderBottom:'1px solid var(--border)', background:'var(--slate-soft)' }}>
+                <div className="form-grid" style={{ marginBottom:8 }}>
+                  <div className="form-field"><label>Who</label><input value={editForm.who} onChange={e => setEditForm(f=>({...f,who:e.target.value}))} /></div>
+                  <div className="form-field"><label>Action</label><input value={editForm.what} onChange={e => setEditForm(f=>({...f,what:e.target.value}))} /></div>
+                  <div className="form-field"><label>Ref</label><input value={editForm.ref} onChange={e => setEditForm(f=>({...f,ref:e.target.value}))} /></div>
+                  <div className="form-field"><label>Detail</label><input value={editForm.extra} onChange={e => setEditForm(f=>({...f,extra:e.target.value}))} /></div>
+                </div>
+                <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                  <button className="btn btn-ghost btn-sm" style={{ color:'var(--red)' }} onClick={() => deleteEntry(a.id)}>Delete</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)}>Cancel</button>
+                  <button className="btn btn-primary btn-sm" onClick={saveEdit}>Save</button>
+                </div>
+              </div>
+            ) : (
+              <div className="feed-row" style={{ gridTemplateColumns:'80px 1fr auto auto', cursor: a.source==='manual' ? 'pointer' : 'default' }}
+                onClick={() => a.source === 'manual' && startEdit(a)}>
+                <span className="feed-when">{a.when}</span>
+                <span>
+                  <span className="feed-who">{a.who}</span>{' '}
+                  <span style={{ color:'var(--fg2)' }}>{a.what} </span>
+                  {a.issueUrl
+                    ? <a href={a.issueUrl} target="_blank" rel="noopener noreferrer" className="feed-ref" style={{ textDecoration:'none' }} onClick={e => e.stopPropagation()}>{a.ref}</a>
+                    : <span className="feed-ref">{a.ref}</span>
+                  }
+                  <span style={{ color:'var(--fg2)' }}>{a.extra}</span>
+                </span>
+                <span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.08em', textTransform:'uppercase', color: a.source==='linear' ? 'var(--blue)' : 'var(--fg3)', padding:'2px 6px', borderRadius:3, background: a.source==='linear' ? 'var(--blue-soft)' : 'var(--slate)', whiteSpace:'nowrap' }}>
+                  {a.source === 'linear' ? 'Linear' : 'Manual'}
+                </span>
+                {a.source === 'manual' && <span style={{ color:'var(--fg3)', fontSize:11 }}><Ic n="edit" size={12} /></span>}
+              </div>
+            )}
           </div>
         ))}
+        {filtered.length > 30 && !showAll && (
+          <div style={{ padding:'12px 20px', textAlign:'center', borderTop:'1px solid var(--border)' }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowAll(true)}>Show all {filtered.length} entries</button>
+          </div>
+        )}
       </div>
     </div>
   );
