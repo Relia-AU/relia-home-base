@@ -849,14 +849,12 @@ function RequirementsView() {
   const shown = filter === 'all' ? reqs : reqs.filter(r => r.type === filter);
   const upd = (ref: string, f: string, v: string) => setReqs(rs => rs.map(r => r.ref === ref ? {...r, [f]: v} : r));
 
-  const nextRef = () => {
-    const prefix = form.type === 'functional' ? 'FR' : 'NFR';
-    const existing = reqs.filter(r => r.type === form.type).length;
-    return `${prefix}-${String(existing + 1).padStart(3,'0')}`;
-  };
-
   const addReq = () => {
-    setReqs(rs => [...rs, { ref: nextRef(), type: form.type, category: form.category, title: form.title, priority: form.priority, status: 'draft', linear_id: form.linear_id }]);
+    const prefix = form.type === 'functional' ? 'FR' : 'NFR';
+    const count = reqs.filter(r => r.type === form.type).length;
+    const ref = `${prefix}-${String(count + 1).padStart(3,'0')}`;
+    const newReq = { ref, type: form.type, category: form.category, title: form.title, priority: form.priority, status: 'draft', linear_id: form.linear_id };
+    setReqs(rs => [...rs, newReq]);
     setForm({ type:'functional', category:'', title:'', description:'', priority:'must_have', linear_id:'' });
     setAdding(false);
   };
