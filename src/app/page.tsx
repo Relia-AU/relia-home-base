@@ -256,10 +256,35 @@ function HomeView() {
 
 function WorkView() {
   const [filter, setFilter] = useState('all');
-  const filtered = filter === 'all' ? ISSUES : ISSUES.filter(i => i.status === filter);
+  const [liveIssues, setLiveIssues] = useState<typeof ISSUES | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.from('linear_issues').select('*').order('priority').then(({ data }) => {
+      if (data && data.length > 0) {
+        setLiveIssues(data.map(d => ({
+          id: d.identifier,
+          title: d.title,
+          status: d.status === 'in_progress' ? 'prog' : d.status === 'in_review' ? 'review' : d.status === 'cancelled' ? 'block' : d.status,
+          prio: d.priority === 1 ? 'urgent' : d.priority === 2 ? 'high' : d.priority === 3 ? 'med' : 'low',
+          who: d.assignee_id ? 'J' : '—',
+          project: d.project ?? '',
+        })));
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const issues = liveIssues ?? ISSUES;
+  const filtered = filter === 'all' ? issues : issues.filter(i => i.status === filter);
+
   return (
     <>
-      <div className="section-hd"><h2>In <em>flight</em></h2><span className="aside">{ISSUES.length} issues</span></div>
+      <div className="section-hd">
+        <h2>In <em>flight</em></h2>
+        <span className="aside">{loading ? 'syncing…' : `${issues.length} issues${liveIssues ? ' · live' : ' · cached'}`}</span>
+      </div>
       <div className="work-filters">
         {['all','prog','review','todo','block','done'].map(f => (
           <button key={f} className={`filter-btn${filter===f?' active':''}`} onClick={() => setFilter(f)}>

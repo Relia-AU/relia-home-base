@@ -4,7 +4,7 @@ compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
 
 [triggers]
-crons = ["0 17 * * *"]  # 03:00 AEST daily
+crons = ["*/15 * * * *", "0 17 * * *"]  # every 15min (Linear sync) + 03:00 AEST nightly
 
 [vars]
 ENVIRONMENT = "production"

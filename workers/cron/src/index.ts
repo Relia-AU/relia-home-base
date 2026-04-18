@@ -1,14 +1,7 @@
 /**
  * Cron Worker for Relia Intranet.
- *
- * Runs nightly at 03:00 AEST (17:00 UTC).
- * Tasks:
- *   - Purge expired security allowlist entries
- *   - Roll up daily Sentry stats and post to #relia-eng
- *   - Cleanup orphaned Supabase storage objects
- *
- * This Worker uses the Supabase service role key (bypasses RLS) because it
- * operates across all users. See docs/decisions/0003-rls-strategy.md.
+ * Runs every 15 minutes to sync Linear issues → Supabase.
+ * Runs nightly at 03:00 AEST for cleanup tasks.
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -16,14 +9,85 @@ import { createClient } from '@supabase/supabase-js';
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  LINEAR_API_KEY: string;
   SLACK_WEBHOOK_ENG: string;
 }
 
+interface LinearIssue {
+  id: string;
+  identifier: string;
+  title: string;
+  description: string | null;
+  state: { name: string };
+  priority: number;
+  assignee: { name: string; email: string } | null;
+  team: { name: string } | null;
+  labels: { nodes: { name: string }[] };
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default {
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(runNightlyTasks(env));
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    const cron = event.cron;
+    if (cron === '*/15 * * * *') {
+      ctx.waitUntil(syncLinear(env));
+    } else {
+      ctx.waitUntil(runNightlyTasks(env));
+    }
   },
 } satisfies ExportedHandler<Env>;
+
+async function syncLinear(env: Env) {
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const query = `
+    query {
+      issues(first: 100, orderBy: updatedAt) {
+        nodes {
+          id identifier title description
+          state { name }
+          priority
+          assignee { name email }
+          team { name }
+          labels { nodes { name } }
+          url createdAt updatedAt
+        }
+      }
+    }
+  `;
+
+  const res = await fetch('https://api.linear.app/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': env.LINEAR_API_KEY,
+    },
+    body: JSON.stringify({ query }),
+  });
+
+  const json = await res.json() as { data?: { issues?: { nodes: LinearIssue[] } } };
+  const issues = json.data?.issues?.nodes ?? [];
+
+  for (const issue of issues) {
+    await supabase.from('linear_issues').upsert({
+      linear_id:   issue.id,
+      identifier:  issue.identifier,
+      title:       issue.title,
+      description: issue.description ?? null,
+      status:      issue.state.name.toLowerCase().replace(/\s+/g, '_'),
+      priority:    issue.priority,
+      project:     issue.team?.name ?? null,
+      labels:      issue.labels.nodes.map(l => l.name),
+      linear_url:  issue.url,
+      synced_at:   new Date().toISOString(),
+      updated_at:  issue.updatedAt,
+    }, { onConflict: 'linear_id' });
+  }
+}
 
 async function runNightlyTasks(env: Env) {
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
@@ -33,20 +97,17 @@ async function runNightlyTasks(env: Env) {
   const results: string[] = [];
 
   try {
-    // Placeholder: real cleanup queries go here, gated by RLS-bypassing service role
-    const { count } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
-    results.push(`Profiles in system: ${count ?? 'unknown'}`);
+    const { count } = await supabase.from('linear_issues').select('*', { count: 'exact', head: true });
+    results.push(`Linear issues synced: ${count ?? 0}`);
   } catch (err) {
-    results.push(`Cleanup failed: ${err instanceof Error ? err.message : 'unknown error'}`);
+    results.push(`Nightly task failed: ${err instanceof Error ? err.message : 'unknown'}`);
   }
 
-  await fetch(env.SLACK_WEBHOOK_ENG, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      text: `Nightly cron complete:\n${results.map((r) => `- ${r}`).join('\n')}`,
-    }),
-  });
+  if (env.SLACK_WEBHOOK_ENG) {
+    await fetch(env.SLACK_WEBHOOK_ENG, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: `Nightly cron:\n${results.map(r => `- ${r}`).join('\n')}` }),
+    });
+  }
 }
