@@ -946,7 +946,7 @@ function initials(name: string) { return name.split(' ').map(n => n[0]).join('')
 
 // ── DEV sections ──────────────────────────────────────────────────────────
 function InflightView() {
-  const [tab, setTab] = useState<'list'|'activity'>('list');
+  const [tab] = useState<'list'>('list');
   const [statusFilter, setStatusFilter] = useState('all');
   const [cycleFilter, setCycleFilter] = useState<string>('all');
   const [issues, setIssues] = useState<LinearIssue[]>([]);
@@ -999,9 +999,11 @@ function InflightView() {
         </span>
       </div>
 
-      <div className="tab-bar">
-        <button className={`tab-btn${tab==='list'?' active':''}`} onClick={() => setTab('list')}>Issues</button>
-        <button className={`tab-btn${tab==='activity'?' active':''}`} onClick={() => setTab('activity')}>Activity</button>
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+        <div className="tab-bar" style={{ marginBottom:0 }}>
+          <button className="tab-btn active">Issues</button>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('dev','activity')}>Activity feed →</button>
       </div>
 
       {tab === 'list' && <>
@@ -1072,19 +1074,6 @@ function InflightView() {
         </div>
       </>}
 
-      {tab === 'activity' && (
-        <div className="data-card">
-          {ACTIVITY.length === 0
-            ? <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>Activity will appear here once the cron sync is running.</div>
-            : ACTIVITY.map((a,i) => (
-              <div key={i} className="feed-row">
-                <span className="feed-when">{a.when}</span>
-                <span><span className="feed-who">{a.who}</span> <span style={{ color:'var(--fg2)' }}>{a.what} </span><span className="feed-ref">{a.ref}</span><span style={{ color:'var(--fg2)' }}>{a.extra}</span></span>
-              </div>
-            ))
-          }
-        </div>
-      )}
     </div>
   );
 }
@@ -1105,13 +1094,15 @@ function timeAgo(iso: string): string {
   return d === 1 ? 'yesterday' : `${d}d ago`;
 }
 
+type ActivityIssue = { id: string; identifier: string; title: string; url: string };
+
 function ActivityView() {
   const [linearEntries, setLinearEntries] = useState<ActivityEntry[]>([]);
   const [manualEntries, setManualEntries] = useState<ActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [addType, setAddType] = useState<'general'|'comment'>('general');
-  const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
+  const [linearIssues, setLinearIssues] = useState<ActivityIssue[]>([]);
   const [form, setForm] = useState({ who: '', what: '', ref: '', extra: '', issueId: '', comment: '' });
   const [posting, setPosting] = useState(false);
   const apiKey = process.env.NEXT_PUBLIC_LINEAR_API_KEY ?? '';
@@ -1143,7 +1134,7 @@ function ActivityView() {
       });
       entries.sort((a, b) => b.whenTs - a.whenTs);
       setLinearEntries(entries);
-      setLinearIssues(issues);
+      setLinearIssues(issues.map(i => ({ id: i.id, identifier: i.identifier, title: i.title, url: i.url })));
       setLoading(false);
     })
     .catch(() => setLoading(false));
