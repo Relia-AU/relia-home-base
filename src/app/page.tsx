@@ -607,6 +607,63 @@ function TradeVocabView() {
   );
 }
 
+// ── Issue row with edit panel ─────────────────────────────────────────────
+function IssueRow({ issue, apiKey }: { issue: LinearIssue; apiKey: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [title, setTitle] = useState(issue.title);
+  const [priority, setPriority] = useState(issue.priority);
+
+  const saveToLinear = async () => {
+    if (!apiKey) return;
+    setSaving(true);
+    await fetch('https://api.linear.app/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': apiKey },
+      body: JSON.stringify({ query: `mutation { issueUpdate(id: "${issue.id}", input: { title: ${JSON.stringify(title)}, priority: ${priority} }) { success } }` }),
+    });
+    setSaving(false);
+  };
+
+  return (
+    <>
+      <div className="issue-row" style={{ cursor:'pointer' }} onClick={() => setExpanded(e => !e)}>
+        <span className="iid">{issue.identifier}</span>
+        <span className="ititle">
+          <b>{title}</b>
+          {issue.team && <span className="sub">{issue.team.name}</span>}
+          {issue.labels.nodes.map(l => <span key={l.name} style={{ marginLeft:6, fontSize:10, padding:'1px 6px', borderRadius:3, background:`${l.color}22`, color:l.color, fontFamily:'var(--font-mono)', letterSpacing:'0.06em' }}>{l.name}</span>)}
+        </span>
+        {issue.assignee && <span className="iavatar" title={issue.assignee.displayName}>{initials(issue.assignee.displayName)}</span>}
+        <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+          <Pill s={linearStatusToPill(issue.state.type)} label={issue.state.name} />
+          {issue.priority > 0 && <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color: priorityColor(issue.priority), letterSpacing:'0.06em' }}>{priorityLabel(issue.priority)}</span>}
+        </span>
+      </div>
+      {expanded && (
+        <div style={{ padding:'14px 20px 16px', background:'var(--slate-soft)', borderBottom:'1px solid var(--border)' }}>
+          <div className="form-grid" style={{ marginBottom:10 }}>
+            <div className="form-field full">
+              <label>Title</label>
+              <input value={title} onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label>Priority</label>
+              <select value={priority} onChange={e => setPriority(Number(e.target.value))}>
+                {[0,1,2,3,4].map(p => <option key={p} value={p}>{priorityLabel(p)}</option>)}
+              </select>
+            </div>
+            <div className="form-field" style={{ justifyContent:'flex-end', flexDirection:'row', alignItems:'flex-end', gap:8 }}>
+              <a href={issue.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">Open in Linear →</a>
+              <button className="btn btn-primary btn-sm" onClick={saveToLinear} disabled={saving}>{saving ? 'Saving…' : 'Save to Linear'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── Linear types ──────────────────────────────────────────────────────────
 interface LinearIssue { id: string; identifier: string; title: string; state: { name: string; type: string }; priority: number; assignee: { name: string; displayName: string } | null; team: { name: string } | null; labels: { nodes: { name: string; color: string }[] }; url: string; }
 interface LinearCycle { id: string; name: string | null; number: number; startsAt: string; endsAt: string; completedAt: string | null; issues: { nodes: LinearIssue[] }; progress: number; }
@@ -756,19 +813,7 @@ function InflightView() {
           {loading && <div style={{ padding:'20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>Loading from Linear…</div>}
           {!loading && shownIssues.length === 0 && <div style={{ padding:'20px', color:'var(--fg3)', fontSize:13 }}>No issues match this filter.</div>}
           {shownIssues.map(i => (
-            <a key={i.id} className="issue-row" href={i.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
-              <span className="iid">{i.identifier}</span>
-              <span className="ititle">
-                <b>{i.title}</b>
-                {i.team && <span className="sub">{i.team.name}</span>}
-                {i.labels.nodes.map(l => <span key={l.name} style={{ marginLeft:6, fontSize:10, padding:'1px 6px', borderRadius:3, background:`${l.color}22`, color:l.color, fontFamily:'var(--font-mono)', letterSpacing:'0.06em' }}>{l.name}</span>)}
-              </span>
-              {i.assignee && <span className="iavatar" title={i.assignee.displayName}>{initials(i.assignee.displayName)}</span>}
-              <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-                <Pill s={linearStatusToPill(i.state.type)} label={i.state.name} />
-                {i.priority > 0 && <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color: priorityColor(i.priority), letterSpacing:'0.06em' }}>{priorityLabel(i.priority)}</span>}
-              </span>
-            </a>
+            <IssueRow key={i.id} issue={i} apiKey={process.env.NEXT_PUBLIC_LINEAR_API_KEY ?? ''} />
           ))}
         </div>
       </>}
@@ -807,33 +852,128 @@ function ActivityView() {
 function RequirementsView() {
   const [reqs, setReqs] = useState(REQS_SEED);
   const [filter, setFilter] = useState<'all'|'functional'|'non_functional'>('all');
+  const [adding, setAdding] = useState(false);
+  const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
+  const [form, setForm] = useState({ type:'functional', category:'', title:'', description:'', priority:'must_have', linear_id:'' });
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_LINEAR_API_KEY;
+    if (!key) return;
+    fetch('https://api.linear.app/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': key },
+      body: JSON.stringify({ query: `query { issues(first: 100) { nodes { id identifier title state { name type } } } }` }),
+    }).then(r => r.json()).then((d: { data?: { issues?: { nodes: LinearIssue[] } } }) => setLinearIssues(d.data?.issues?.nodes ?? []));
+  }, []);
+
   const shown = filter === 'all' ? reqs : reqs.filter(r => r.type === filter);
   const upd = (ref: string, f: string, v: string) => setReqs(rs => rs.map(r => r.ref === ref ? {...r, [f]: v} : r));
+
+  const nextRef = () => {
+    const prefix = form.type === 'functional' ? 'FR' : 'NFR';
+    const existing = reqs.filter(r => r.type === form.type).length;
+    return `${prefix}-${String(existing + 1).padStart(3,'0')}`;
+  };
+
+  const addReq = () => {
+    setReqs(rs => [...rs, { ref: nextRef(), type: form.type, category: form.category, title: form.title, priority: form.priority, status: 'draft', linear_id: form.linear_id }]);
+    setForm({ type:'functional', category:'', title:'', description:'', priority:'must_have', linear_id:'' });
+    setAdding(false);
+  };
+
   return (
     <div className="hub-page">
       <div className="breadcrumb"><span>Dev</span><span className="sep">·</span><b>Requirements</b></div>
       <div className="section-head">
         <h2>Requirements</h2>
-        <div style={{ display:'flex', gap:8 }}><span className="meta">{reqs.length} total</span><button className="btn btn-primary btn-sm"><Ic n="plus" />Add</button></div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <span className="meta">{reqs.length} total</span>
+          <button className="btn btn-primary btn-sm" onClick={() => setAdding(a => !a)}><Ic n="plus" />{adding?'Cancel':'Add'}</button>
+        </div>
       </div>
+
+      {adding && (
+        <div className="uat-form" style={{ marginBottom:20 }}>
+          <h4>New requirement</h4>
+          <div className="form-grid">
+            <div className="form-field">
+              <label>Type</label>
+              <select value={form.type} onChange={e => setForm(f => ({...f, type: e.target.value}))}>
+                <option value="functional">Functional</option>
+                <option value="non_functional">Non-functional</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Category</label>
+              <input value={form.category} onChange={e => setForm(f => ({...f, category: e.target.value}))} placeholder="e.g. Voice Capture, Security" />
+            </div>
+            <div className="form-field full">
+              <label>Title</label>
+              <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} placeholder="What must the system do?" />
+            </div>
+            <div className="form-field">
+              <label>Priority (MoSCoW)</label>
+              <select value={form.priority} onChange={e => setForm(f => ({...f, priority: e.target.value}))}>
+                <option value="must_have">Must have</option>
+                <option value="should_have">Should have</option>
+                <option value="could_have">Could have</option>
+                <option value="wont_have">Won't have</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Linked Linear issue</label>
+              <select value={form.linear_id} onChange={e => setForm(f => ({...f, linear_id: e.target.value}))}>
+                <option value="">None</option>
+                {linearIssues.map(i => <option key={i.id} value={i.identifier}>{i.identifier} — {i.title}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={() => setAdding(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={addReq} disabled={!form.title || !form.category}>Add requirement</button>
+          </div>
+        </div>
+      )}
+
       <div className="tab-bar">
         {(['all','functional','non_functional'] as const).map(f => (
           <button key={f} className={`tab-btn${filter===f?' active':''}`} onClick={() => setFilter(f)}>
-            {f==='all'?'All':f==='functional'?'Functional':'Non-functional'}
+            {f==='all'?`All (${reqs.length})`:f==='functional'?`Functional (${reqs.filter(r=>r.type==='functional').length})`:`Non-functional (${reqs.filter(r=>r.type==='non_functional').length})`}
           </button>
         ))}
       </div>
+
       <div className="data-card">
         <table className="data-table">
-          <thead><tr><th>Ref</th><th>Category</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
+          <thead><tr><th>Ref</th><th>Category</th><th>Title</th><th>Priority</th><th>Status</th><th>Linear</th></tr></thead>
           <tbody>
             {shown.map(r => (
               <tr key={r.ref}>
                 <td><span className="mono">{r.ref}</span></td>
-                <td><EF value={r.category} onSave={v => upd(r.ref,'category',v)} /></td>
+                <td>
+                  <select value={r.category} onChange={e => upd(r.ref,'category',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:12, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0, width:'100%' }}>
+                    {['Voice Capture','Quoting','Follow-up','Onboarding','Materials','Performance','Security','Availability','Other'].map(c => <option key={c} value={c}>{c}</option>)}
+                    {!['Voice Capture','Quoting','Follow-up','Onboarding','Materials','Performance','Security','Availability','Other'].includes(r.category) && <option value={r.category}>{r.category}</option>}
+                  </select>
+                </td>
                 <td className="fw600"><EF value={r.title} onSave={v => upd(r.ref,'title',v)} /></td>
-                <td><Pill s={r.priority} /></td>
-                <td><Pill s={r.status} /></td>
+                <td>
+                  <select value={r.priority} onChange={e => upd(r.ref,'priority',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:11, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0 }}>
+                    {['must_have','should_have','could_have','wont_have'].map(p => <option key={p} value={p}>{p.replace('_',' ')}</option>)}
+                  </select>
+                </td>
+                <td>
+                  <select value={r.status} onChange={e => upd(r.ref,'status',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:11, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0 }}>
+                    {['draft','approved','implemented','deprecated'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </td>
+                <td>
+                  <select value={r.linear_id} onChange={e => upd(r.ref,'linear_id',e.target.value)} style={{ fontFamily:'var(--font-mono)', fontSize:10, background:'transparent', border:'none', color: r.linear_id ? 'var(--navy)' : 'var(--fg3)', cursor:'pointer', padding:0 }}>
+                    <option value="">—</option>
+                    {linearIssues.map(i => <option key={i.id} value={i.identifier}>{i.identifier}</option>)}
+                    {r.linear_id && !linearIssues.find(i => i.identifier === r.linear_id) && <option value={r.linear_id}>{r.linear_id}</option>}
+                  </select>
+                </td>
               </tr>
             ))}
           </tbody>
