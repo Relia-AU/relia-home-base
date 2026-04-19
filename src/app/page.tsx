@@ -1110,13 +1110,20 @@ function DevDashboard() {
   const [cycles, setCycles] = useState<LinearCycle[]>([]);
   const [urgentIssues, setUrgentIssues] = useState<StoredIssue[]>([]);
   const [tab, setTab] = useState<'overview'|'timeline'>('overview');
+  const [selectedCycleId, setSelectedCycleId] = useState<string>('');
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_LINEAR_API_KEY ?? '';
     if (!key) return;
     fetch('https://api.linear.app/graphql', { method:'POST', headers:{'Content-Type':'application/json','Authorization':key},
       body: JSON.stringify({ query:`{ cycles(first:10, orderBy:updatedAt) { nodes { id name number startsAt endsAt completedAt progress issues { nodes { id identifier title state { name type } priority assignee { name displayName } team { name } labels { nodes { name color } } url } } } } }` }) })
-      .then(r=>r.json()).then((d:{data?:{cycles?:{nodes:LinearCycle[]}}}) => setCycles([...(d.data?.cycles?.nodes??[])].sort((a,b)=>b.number-a.number)));
+      .then(r=>r.json()).then((d:{data?:{cycles?:{nodes:LinearCycle[]}}}) => {
+        const sorted = [...(d.data?.cycles?.nodes??[])].sort((a,b)=>b.number-a.number);
+        setCycles(sorted);
+        // Default to most recently started non-completed cycle
+        const active = sorted.find(c=>!c.completedAt) ?? sorted[0];
+        if (active) setSelectedCycleId(active.id);
+      });
     loadLinearFromSupabase().then(all => setUrgentIssues(all.filter(i => i.priority <= 2 && i.status !== 'done' && i.status !== 'cancelled')));
   }, []);
 
@@ -1128,6 +1135,7 @@ function DevDashboard() {
   const totalTests = tests.length;
   const reqsApproved = reqs.filter(r => r.status === 'implemented' || r.status === 'approved').length;
   const activeCycle = cycles.find(c => !c.completedAt);
+  const selectedCycle = cycles.find(c => c.id === selectedCycleId) ?? activeCycle;
   const urgentCount = urgentIssues.filter(i => i.priority === 1).length;
 
   // Timeline helpers
@@ -1165,7 +1173,7 @@ function DevDashboard() {
       </div>
 
       {/* KPI row */}
-      <div className="stat-row" style={{ marginBottom:28 }}>
+      <div className="stat-row" style={{ marginBottom:14 }}>
         <div className="stat-card accent">
           <div className="stat-label">MVP 1 stories</div>
           <div className="stat-value">{mvp1Done}<small>/{mvp1.length}</small></div>
@@ -1191,9 +1199,9 @@ function DevDashboard() {
       </div>
 
       {tab === 'overview' && (
-        <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:20 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:12 }}>
           {/* Left column */}
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
 
             {/* Urgent & blocked */}
             <div className="data-card">
@@ -1222,37 +1230,50 @@ function DevDashboard() {
               }
             </div>
 
-            {/* Active cycle */}
-            {activeCycle && (
+            {/* Cycle picker + issues */}
+            {cycles.length > 0 && selectedCycle && (
               <div className="data-card">
                 <div className="data-card-head">
-                  <h3>{activeCycle.name ?? `Cycle ${activeCycle.number}`} <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'var(--bottle)', marginLeft:6 }}>● ACTIVE</span></h3>
-                  <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)' }}>
-                    {new Date(activeCycle.startsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – {new Date(activeCycle.endsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}
-                  </span>
+                  <select value={selectedCycleId} onChange={e => setSelectedCycleId(e.target.value)}
+                    style={{ fontFamily:'var(--font-body)', fontSize:13, fontWeight:600, background:'transparent', border:'none', color:'var(--fg1)', cursor:'pointer', outline:'none', padding:0 }}>
+                    {cycles.map(c => (
+                      <option key={c.id} value={c.id}>{c.name ?? `Cycle ${c.number}`}{!c.completedAt ? ' ●' : ''}</option>
+                    ))}
+                  </select>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    {!selectedCycle.completedAt && <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'var(--bottle)', letterSpacing:'0.08em', textTransform:'uppercase' }}>● Active</span>}
+                    {selectedCycle.completedAt && <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'var(--fg3)', letterSpacing:'0.08em', textTransform:'uppercase' }}>Complete</span>}
+                    <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)' }}>
+                      {new Date(selectedCycle.startsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – {new Date(selectedCycle.endsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ padding:'14px 20px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                    <span style={{ fontSize:13, color:'var(--fg3)' }}>{activeCycle.issues.nodes.length} issues</span>
-                    <span style={{ fontFamily:'var(--font-body)', fontSize:14, fontWeight:700, color:'var(--bottle)' }}>{Math.round(activeCycle.progress)}%</span>
+                <div style={{ padding:'12px 20px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:'var(--fg3)' }}>{selectedCycle.issues.nodes.length} issues</span>
+                    <span style={{ fontFamily:'var(--font-body)', fontSize:13, fontWeight:700, color:'var(--bottle)' }}>{Math.round(selectedCycle.progress)}%</span>
                   </div>
-                  <div style={{ height:8, background:'var(--slate)', borderRadius:999, marginBottom:16 }}>
-                    <div style={{ width:`${activeCycle.progress}%`, height:'100%', background:'var(--bottle)', borderRadius:999, transition:'width 0.4s' }} />
+                  <div style={{ height:5, background:'var(--slate)', borderRadius:999, marginBottom:12 }}>
+                    <div style={{ width:`${selectedCycle.progress}%`, height:'100%', background:'var(--bottle)', borderRadius:999 }} />
                   </div>
-                  {activeCycle.issues.nodes.slice(0,5).map(i => (
-                    <div key={i.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:8, marginBottom:8, borderBottom:'1px solid var(--border)', fontSize:13 }}>
-                      <span style={{ color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, marginRight:12 }}>{i.title}</span>
+                  {selectedCycle.issues.nodes.slice(0,6).map(i => (
+                    <div key={i.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid var(--border)', fontSize:12 }}>
+                      <span style={{ color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, marginRight:10 }}>{i.title}</span>
                       <Pill s={linearStatusToPill(i.state.type)} label={i.state.name} />
                     </div>
                   ))}
-                  {activeCycle.issues.nodes.length > 5 && <div style={{ fontSize:12, color:'var(--fg3)', textAlign:'center', paddingTop:4 }}>+{activeCycle.issues.nodes.length-5} more</div>}
+                  {selectedCycle.issues.nodes.length > 6 && (
+                    <button onClick={() => navigate('dev','inflight')} style={{ display:'block', width:'100%', padding:'8px 0', fontSize:12, color:'var(--fg3)', background:'none', border:'none', cursor:'pointer', textAlign:'center' }}>
+                      +{selectedCycle.issues.nodes.length-6} more → view all
+                    </button>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
           {/* Right column */}
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
 
             {/* MVP 1 story progress */}
             <div className="data-card">
@@ -1260,9 +1281,9 @@ function DevDashboard() {
                 <h3>MVP 1 stories</h3>
                 <button className="btn btn-ghost btn-sm" onClick={() => navigate('dev','stories')}>All →</button>
               </div>
-              <div style={{ padding:'12px 20px' }}>
+              <div style={{ padding:'8px 20px' }}>
                 {mvp1.map(s => (
-                  <div key={s.ref} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                  <div key={s.ref} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
                     <span style={{ width:8, height:8, borderRadius:'50%', background: s.status==='done'?'var(--bottle)':s.status==='in_progress'?'var(--butter)':'var(--slate-deep)', flexShrink:0 }} />
                     <span style={{ fontSize:12, color: s.status==='done'?'var(--fg3)':'var(--fg1)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: s.status==='done'?'line-through':undefined }}>{s.i_want_to}</span>
                     <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.08em', textTransform:'uppercase', color: s.status==='done'?'var(--bottle)':s.status==='in_progress'?'var(--butter-deep)':'var(--fg3)', flexShrink:0 }}>{s.status.replace('_',' ')}</span>
