@@ -1147,7 +1147,7 @@ function DevDashboard() {
 
   const urgentDisplay = urgentIssues.length > 0
     ? urgentIssues
-    : urgentFromCycles.map(i => ({ linear_id: i.id, identifier: i.identifier, title: i.title, priority: i.priority, status: i.state.type, linear_url: i.url, storage_path:'', file_name:'', synced_at:'', updated_at:'' } as StoredIssue));
+    : urgentFromCycles.map(i => ({ id: i.id, linear_id: i.id, identifier: i.identifier, title: i.title, priority: i.priority, status: i.state.type, project: i.team?.name ?? null, labels: i.labels.nodes.map((l: { name: string }) => l.name), linear_url: i.url, synced_at:'', updated_at:'' } satisfies StoredIssue));
   const urgentCount = (urgentIssues.length > 0 ? urgentIssues : urgentFromCycles).filter(i => i.priority === 1).length;
 
   // Timeline helpers
