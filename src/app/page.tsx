@@ -170,7 +170,7 @@ const ISSUES_SEED = [
   { id:'REL-120', title:'Push notification not firing on quote accept', status:'block', prio:'urgent',who:'M', project:'Backend' },
 ];
 const REQS_SEED: { ref: string; type: string; category: string; priority: string; status: string; title: string; linear_id: string }[] = [];
-const UAT_SEED: { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string }[] = [];
+const UAT_SEED: UATTest[] = [];
 
 // ── Pill component ────────────────────────────────────────────────────────
 const STATUS_MAP: Record<string,string> = { todo:'p-todo', prog:'p-prog', review:'p-review', done:'p-done', block:'p-block', draft:'p-draft', active:'p-active', prospect:'p-prospect', passed:'p-passed', failed:'p-failed', in_progress:'p-prog', must_have:'p-must', should_have:'p-should', could_have:'p-could', wont_have:'p-wont', implemented:'p-done', approved:'p-review', closed_won:'p-done', trial:'p-review', qualified:'p-prog' };
@@ -1590,7 +1590,7 @@ const STORIES_SEED = [
 
 type UserStory = typeof STORIES_SEED[0];
 type Req = { ref: string; type: string; category: string; title: string; priority: string; status: string; linear_id: string; developer?: string; platform?: string; user_story?: string };
-type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform?: string; version?: string };
+type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string };
 
 // ── Shared data context ────────────────────────────────────────────────────
 interface AppDataCtx {
@@ -2395,6 +2395,7 @@ function AppInner() {
 
   const renderContent = () => {
     if (isLanding) return <LandingPage />;
+    if (!route.section && hub === 'dev') return <DevDashboard />;
     if (!route.section) return <HubOverview hub={hub as keyof typeof HUBS} />;
     if (hub === 'trades') {
       if (route.section === 'dashboard')    return <TradesDashboard />;
