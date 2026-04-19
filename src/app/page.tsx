@@ -1462,7 +1462,8 @@ function UATTestRow({ t, upd, linearIssues }: {
   const supabase = createClient();
 
   const loadAttachments = async () => {
-    const { data } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
       .from('uat_attachments')
       .select('*')
       .eq('uat_test_id', t.id)
@@ -1487,7 +1488,8 @@ function UATTestRow({ t, upd, linearIssues }: {
     const path = `${t.id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from('uat-attachments').upload(path, file);
     if (!error) {
-      await supabase.from('uat_attachments').insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from('uat_attachments').insert({
         uat_test_id: t.id,
         linear_issue_id: attachLinear || null,
         storage_path: path,
@@ -1506,7 +1508,8 @@ function UATTestRow({ t, upd, linearIssues }: {
 
   const deleteAttachment = async (id: string, path: string) => {
     await supabase.storage.from('uat-attachments').remove([path]);
-    await supabase.from('uat_attachments').delete().eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('uat_attachments').delete().eq('id', id);
     setAttachments(as => as.filter(a => a.id !== id));
   };
 
