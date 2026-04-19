@@ -2634,7 +2634,8 @@ function UATView() {
 
   const loadTests = async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await (supabase as any).from('uat_tests').select('*').order('ref', { ascending: true });
+    const { data, error } = await (supabase as any).from('uat_tests').select('*').order('ref', { ascending: true });
+    if (error) console.error('[UAT] loadTests error:', error);
     if (data) setTests(data.map(rowToTest));
     setLoading(false);
   };
