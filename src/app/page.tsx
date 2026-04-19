@@ -1940,7 +1940,7 @@ const STORIES_SEED = [
 
 type UserStory = typeof STORIES_SEED[0];
 type Req = { ref: string; type: string; category: string; title: string; priority: string; status: string; linear_id: string; developer?: string; platform?: string; user_story?: string; phase?: string };
-type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string; cycle?: string };
+type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string; cycle?: string; description?: string; expected_result?: string; actual_result?: string; };
 
 // ── Shared data context ────────────────────────────────────────────────────
 interface AppDataCtx {
@@ -2556,60 +2556,108 @@ function UATTestRow({ t, upd, linearIssues }: {
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={8} style={{ padding:0, background:'var(--slate-soft)', borderBottom:'1px solid var(--border)' }}>
-            <div style={{ padding:'16px 20px' }}>
-              {/* Notes — editable inline */}
-              <div style={{ marginBottom:16, padding:'10px 14px', background:'var(--bg-card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)' }}>
-                <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:6 }}>Notes</div>
-                {t.notes
-                  ? <div style={{ fontSize:13, color:'var(--fg1)', lineHeight:1.5 }}><EF value={t.notes} onSave={v => upd(t.id,'notes',v)} multi /></div>
-                  : <button onClick={e => { e.stopPropagation(); upd(t.id,'notes',' '); }} style={{ background:'none', border:'1px dashed var(--border)', borderRadius:'var(--radius-sm)', padding:'6px 12px', color:'var(--fg3)', fontSize:12, cursor:'pointer', width:'100%', textAlign:'left' }}>+ Add notes…</button>
-                }
-              </div>
-              {/* Upload area */}
-              <div style={{ marginBottom:16 }}>
-                <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:8 }}>Upload image</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto auto', gap:8, alignItems:'end' }}>
-                  <div className="form-field">
-                    <label>Caption (optional)</label>
-                    <input value={caption} onChange={e => setCaption(e.target.value)} placeholder="e.g. iOS 18 voice drop bug" />
+          <td colSpan={8} style={{ padding:0, background:'var(--slate-soft)', borderBottom:'2px solid var(--border)' }}>
+            <div style={{ padding:'20px 24px', display:'grid', gridTemplateColumns:'1fr 280px', gap:24 }}>
+
+              {/* LEFT — test case detail */}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                {(['description','expected_result','actual_result','notes'] as const).map(field => {
+                  const labels: Record<string,string> = { description:'Description', expected_result:'Expected result', actual_result:'Actual result', notes:'Notes' };
+                  const val = (t[field] ?? '') as string;
+                  return (
+                    <div key={field} style={{ background:'var(--bg-card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'10px 14px' }}>
+                      <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:6 }}>{labels[field]}</div>
+                      {val.trim()
+                        ? <div style={{ fontSize:13, color:'var(--fg1)', lineHeight:1.6 }}><EF value={val} onSave={v => upd(t.id, field, v)} multi /></div>
+                        : <button onClick={e => { e.stopPropagation(); upd(t.id, field, ' '); }} style={{ background:'none', border:'1px dashed var(--border)', borderRadius:'var(--radius-sm)', padding:'6px 12px', color:'var(--fg3)', fontSize:12, cursor:'pointer', width:'100%', textAlign:'left' }}>+ Add {(labels[field] ?? field).toLowerCase()}…</button>
+                      }
+                    </div>
+                  );
+                })}
+
+                {/* Screenshots */}
+                <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'10px 14px' }}>
+                  <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:10 }}>Screenshots</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto', gap:8, alignItems:'end', marginBottom:12 }}>
+                    <div className="form-field" style={{ margin:0 }}>
+                      <label>Caption (optional)</label>
+                      <input value={caption} onChange={e => setCaption(e.target.value)} placeholder="e.g. iOS 18 voice drop bug" />
+                    </div>
+                    <div className="form-field" style={{ margin:0 }}>
+                      <label>Link to Linear issue</label>
+                      <LinearSearch value={attachLinear} issues={linearIssues} onChange={(_id, identifier) => setAttachLinear(identifier)} placeholder="Search issues…" />
+                    </div>
+                    <label style={{ cursor:'pointer' }}>
+                      <input ref={fileRef} type="file" accept="image/*,video/mp4" style={{ display:'none' }} onChange={upload} disabled={uploading} />
+                      <span className={`btn btn-primary btn-sm${uploading?' disabled':''}`} style={{ display:'inline-flex', alignItems:'center', gap:6, opacity: uploading ? 0.6 : 1 }}>
+                        {uploading ? 'Uploading…' : <><Ic n="plus" size={12} />Choose file</>}
+                      </span>
+                    </label>
                   </div>
-                  <div className="form-field">
-                    <label>Link to Linear issue (optional)</label>
-                    <LinearSearch value={attachLinear} issues={linearIssues} onChange={(_id, identifier) => setAttachLinear(identifier)} placeholder="Search issues…" />
-                  </div>
-                  <label style={{ cursor:'pointer', marginBottom:1 }}>
-                    <input ref={fileRef} type="file" accept="image/*,video/mp4" style={{ display:'none' }} onChange={upload} disabled={uploading} />
-                    <span className={`btn btn-primary btn-sm${uploading?' disabled':''}`} style={{ display:'inline-flex', alignItems:'center', gap:6, opacity: uploading ? 0.6 : 1 }}>
-                      {uploading ? 'Uploading…' : <><Ic n="plus" size={12} />Choose file</>}
-                    </span>
-                  </label>
+                  {attachments.length === 0
+                    ? <div style={{ fontSize:12, color:'var(--fg3)', fontStyle:'italic' }}>No screenshots yet.</div>
+                    : <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(140px, 1fr))', gap:8 }}>
+                        {attachments.map(a => (
+                          <div key={a.id} style={{ background:'var(--bg)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', overflow:'hidden' }}>
+                            <img src={a.url} alt={a.caption || a.file_name} style={{ width:'100%', height:100, objectFit:'cover', display:'block' }} />
+                            <div style={{ padding:'6px 8px' }}>
+                              {a.caption && <div style={{ fontSize:11, fontWeight:500, marginBottom:2 }}>{a.caption}</div>}
+                              <div style={{ fontSize:10, color:'var(--fg3)', display:'flex', justifyContent:'space-between' }}>
+                                <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color:'var(--navy)' }}>View</a>
+                                <button style={{ background:'none', border:'none', color:'var(--red)', fontSize:10, cursor:'pointer' }} onClick={() => deleteAttachment(a.id, a.storage_path)}>Delete</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                  }
                 </div>
               </div>
 
-              {/* Image gallery */}
-              {attachments.length === 0
-                ? <div style={{ fontSize:12, color:'var(--fg3)', fontStyle:'italic' }}>No images yet — upload one above.</div>
-                : (
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(160px, 1fr))', gap:10 }}>
-                    {attachments.map(a => (
-                      <div key={a.id} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', overflow:'hidden' }}>
-                        <img src={a.url} alt={a.caption || a.file_name} style={{ width:'100%', height:120, objectFit:'cover', display:'block' }} />
-                        <div style={{ padding:'8px 10px' }}>
-                          {a.caption && <div style={{ fontSize:11, fontWeight:500, marginBottom:3 }}>{a.caption}</div>}
-                          {a.linear_issue_id && <div style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'var(--navy)', letterSpacing:'0.06em' }}>{a.linear_issue_id}</div>}
-                          <div style={{ fontSize:10, color:'var(--fg3)', marginTop:4, display:'flex', justifyContent:'space-between' }}>
-                            <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color:'var(--navy)' }}>View</a>
-                            <button style={{ background:'none', border:'none', color:'var(--red)', fontSize:10, cursor:'pointer' }} onClick={() => deleteAttachment(a.id, a.storage_path)}>Delete</button>
-                          </div>
-                        </div>
+              {/* RIGHT — metadata */}
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', padding:'12px 14px', display:'flex', flexDirection:'column', gap:12 }}>
+                  {[
+                    { label:'Requirement', content: (
+                      <select value={t.req_ref} onChange={e => upd(t.id,'req_ref',e.target.value)} style={{ fontSize:13, background:'transparent', border:'none', color:'var(--navy)', cursor:'pointer', padding:0, width:'100%', fontFamily:'var(--font-mono)', fontWeight:600 }}>
+                        <option value="">— none —</option>
+                        {REQS_SEED.map(r => <option key={r.ref} value={r.ref}>{r.ref} — {r.title}</option>)}
+                      </select>
+                    )},
+                    { label:'Linear', content: (
+                      <LinearSearch value={t.linear_id} issues={linearIssues} onChange={(_id, identifier) => upd(t.id,'linear_id',identifier)} placeholder="Search issues…" />
+                    )},
+                    { label:'Tester', content: (
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                        <div style={{ width:22, height:22, borderRadius:'50%', background:testerColor, color:'#fff', fontSize:9, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{initials}</div>
+                        <EF value={t.tester} onSave={v => upd(t.id,'tester',v)} />
                       </div>
-                    ))}
-                  </div>
-                )
-              }
-              {/* Cross-references */}
-              <LinkedPanel reqRef={t.req_ref || undefined} linearId={t.linear_id || undefined} />
+                    )},
+                    { label:'Cycle', content: (
+                      <EF value={t.cycle ?? ''} onSave={v => upd(t.id,'cycle',v)} />
+                    )},
+                    { label:'Platform', content: (
+                      <select value={t.platform ?? 'all'} onChange={e => upd(t.id,'platform',e.target.value)} style={{ fontSize:13, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0, width:'100%' }}>
+                        {['all','ios','android','web'].map(p => <option key={p}>{p === 'ios' ? 'iPhone' : p === 'all' ? 'All' : p === 'web' ? 'Web App' : 'Android'}</option>)}
+                      </select>
+                    )},
+                    { label:'Version', content: <EF value={t.version ?? ''} onSave={v => upd(t.id,'version',v)} /> },
+                    { label:'Date', content: <EF value={t.date ?? ''} onSave={v => upd(t.id,'date',v)} /> },
+                    { label:'Status', content: (
+                      <select value={t.status} onChange={e => upd(t.id,'status',e.target.value)} style={{ fontSize:13, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0, width:'100%' }}>
+                        {['draft','ready','in_progress','passed','failed','blocked'].map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                      </select>
+                    )},
+                  ].map(({ label, content }) => (
+                    <div key={label}>
+                      <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:4 }}>{label}</div>
+                      <div style={{ fontSize:13 }}>{content}</div>
+                    </div>
+                  ))}
+                </div>
+                <LinkedPanel reqRef={t.req_ref || undefined} linearId={t.linear_id || undefined} />
+              </div>
+
             </div>
           </td>
         </tr>
@@ -2633,6 +2681,7 @@ function UATView() {
     tester: r.tester ?? '', req_ref: r.req_ref ?? '',
     linear_id: r.linear_id ?? '', platform: r.platform ?? 'all',
     version: r.version ?? '', date: r.date ?? '',
+    description: r.description ?? '', expected_result: r.expected_result ?? '', actual_result: r.actual_result ?? '',
   });
 
   const loadTests = async () => {
