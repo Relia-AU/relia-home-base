@@ -169,8 +169,112 @@ const ISSUES_SEED = [
   { id:'REL-127', title:'Dark mode — slate backgrounds clash on Samsung',status:'todo', prio:'med',  who:'S', project:'iOS app · v0.9' },
   { id:'REL-120', title:'Push notification not firing on quote accept', status:'block', prio:'urgent',who:'M', project:'Backend' },
 ];
-const REQS_SEED: { ref: string; type: string; category: string; priority: string; status: string; title: string; linear_id: string }[] = [];
-const UAT_SEED: UATTest[] = [];
+const REQS_SEED: Req[] = [
+  // ── MVP 1 · Functional ──────────────────────────────────────────────────
+  { ref:'FR-001', phase:'MVP 1', type:'functional', category:'Voice',        priority:'must_have',   status:'implemented', linear_id:'REL-5',   developer:'jon',   platform:'ios',     user_story:'US-001', title:'Integrate iOS Speech Framework for voice capture' },
+  { ref:'FR-002', phase:'MVP 1', type:'functional', category:'Voice',        priority:'must_have',   status:'implemented', linear_id:'REL-6',   developer:'jon',   platform:'ios',     user_story:'US-001', title:'Real-time streaming transcription UI' },
+  { ref:'FR-003', phase:'MVP 1', type:'functional', category:'Voice',        priority:'must_have',   status:'implemented', linear_id:'REL-8',   developer:'jon',   platform:'ios',     user_story:'US-001', title:'Editable transcript after voice recording' },
+  { ref:'FR-004', phase:'MVP 1', type:'functional', category:'Voice',        priority:'must_have',   status:'implemented', linear_id:'REL-9',   developer:'jon',   platform:'ios',     user_story:'US-001', title:'Mic permissions request and error states' },
+  { ref:'FR-005', phase:'MVP 1', type:'functional', category:'Voice',        priority:'must_have',   status:'implemented', linear_id:'REL-88',  developer:'jon',   platform:'ios',     user_story:'US-002', title:'Voice-to-text using native iOS AI' },
+  { ref:'FR-006', phase:'MVP 1', type:'functional', category:'AI',           priority:'must_have',   status:'implemented', linear_id:'REL-99',  developer:'jon',   platform:'backend', user_story:'US-003', title:'OpenAI AI implementation for material extraction' },
+  { ref:'FR-007', phase:'MVP 1', type:'functional', category:'AI',           priority:'must_have',   status:'implemented', linear_id:'REL-12',  developer:'jon',   platform:'backend', user_story:'US-003', title:'Job templates table and seed data for AI context' },
+  { ref:'FR-008', phase:'MVP 1', type:'functional', category:'AI',           priority:'must_have',   status:'implemented', linear_id:'REL-78',  developer:'jon',   platform:'ios',     user_story:'US-004', title:'Confidence scoring UI — flag low-confidence materials' },
+  { ref:'FR-009', phase:'MVP 1', type:'functional', category:'AI',           priority:'must_have',   status:'implemented', linear_id:'REL-106', developer:'jon',   platform:'backend', user_story:'US-004', title:'AI extraction feedback capture (correction_events)' },
+  { ref:'FR-010', phase:'MVP 1', type:'functional', category:'AI',           priority:'must_have',   status:'implemented', linear_id:'REL-105', developer:'jon',   platform:'ios',     user_story:'US-003', title:'End-to-end: voice → materials → cost → PDF → DB' },
+  { ref:'FR-011', phase:'MVP 1', type:'functional', category:'Pricing',      priority:'must_have',   status:'implemented', linear_id:'REL-109', developer:'jon',   platform:'ios',     user_story:'US-006', title:'Manual price entry for unpriced materials' },
+  { ref:'FR-012', phase:'MVP 1', type:'functional', category:'Pricing',      priority:'must_have',   status:'implemented', linear_id:'REL-80',  developer:'jon',   platform:'ios',     user_story:'US-005', title:'MaterialPricingProvider abstraction + BunningsPricingProvider' },
+  { ref:'FR-013', phase:'MVP 1', type:'functional', category:'Quoting',      priority:'must_have',   status:'implemented', linear_id:'REL-103', developer:'jon',   platform:'ios',     user_story:'US-003', title:'Capture labour as explicit step before Cost Summary' },
+  { ref:'FR-014', phase:'MVP 1', type:'functional', category:'Quoting',      priority:'must_have',   status:'implemented', linear_id:'REL-69',  developer:'jon',   platform:'ios',     user_story:'US-035', title:'GST calculation (registered and non-registered tradies)' },
+  { ref:'FR-015', phase:'MVP 1', type:'functional', category:'Quoting',      priority:'must_have',   status:'implemented', linear_id:'REL-67',  developer:'jon',   platform:'ios',     user_story:'US-007', title:'Document type selector: Quote vs Estimate + PDF labelling' },
+  { ref:'FR-016', phase:'MVP 1', type:'functional', category:'Quoting',      priority:'must_have',   status:'implemented', linear_id:'REL-114', developer:'jon',   platform:'ios',     user_story:'US-007', title:'Real PDF generation — single source of truth' },
+  { ref:'FR-017', phase:'MVP 1', type:'functional', category:'Estimates',    priority:'must_have',   status:'implemented', linear_id:'REL-65',  developer:'jon',   platform:'ios',     user_story:'US-009', title:'Home screen estimate list backed by Supabase CRUD' },
+  { ref:'FR-018', phase:'MVP 1', type:'functional', category:'Estimates',    priority:'must_have',   status:'implemented', linear_id:'REL-107', developer:'jon',   platform:'ios',     user_story:'US-009', title:'View saved estimate from Home Screen (PDF preview mode)' },
+  { ref:'FR-019', phase:'MVP 1', type:'functional', category:'Profile',      priority:'must_have',   status:'implemented', linear_id:'REL-81',  developer:'jon',   platform:'ios',     user_story:'US-014', title:'Trade selection + business details Phase 1 onboarding' },
+  { ref:'FR-020', phase:'MVP 1', type:'functional', category:'Profile',      priority:'must_have',   status:'implemented', linear_id:'REL-64',  developer:'jon',   platform:'ios',     user_story:'US-014', title:'Business profile backed by Supabase profiles table' },
+  { ref:'FR-021', phase:'MVP 1', type:'functional', category:'Profile',      priority:'must_have',   status:'implemented', linear_id:'REL-108', developer:'jon',   platform:'ios',     user_story:'US-014', title:'Edit trades from Settings (TradesPicker + TradesEditScreen)' },
+  { ref:'FR-022', phase:'MVP 1', type:'functional', category:'Auth',         priority:'must_have',   status:'implemented', linear_id:'REL-63',  developer:'jon',   platform:'ios',     user_story:'US-011', title:'Apple Sign-In + Supabase Auth integration' },
+  { ref:'FR-023', phase:'MVP 1', type:'functional', category:'Auth',         priority:'must_have',   status:'approved',    linear_id:'REL-86',  developer:'jon',   platform:'ios',     user_story:'US-011', title:'Account deletion flow (App Store requirement)' },
+  { ref:'FR-024', phase:'MVP 1', type:'functional', category:'Infrastructure',priority:'must_have',  status:'implemented', linear_id:'REL-60',  developer:'jon',   platform:'backend', user_story:'',       title:'estimates table with outcome-tracking schema + RLS' },
+  { ref:'FR-025', phase:'MVP 1', type:'functional', category:'Infrastructure',priority:'must_have',  status:'implemented', linear_id:'REL-59',  developer:'jon',   platform:'backend', user_story:'',       title:'profiles table + Row Level Security policy' },
+  { ref:'FR-026', phase:'MVP 1', type:'functional', category:'Infrastructure',priority:'must_have',  status:'implemented', linear_id:'REL-58',  developer:'jon',   platform:'backend', user_story:'',       title:'Edge Functions runtime bootstrap and environment secrets' },
+  // ── MVP 2 · Functional ──────────────────────────────────────────────────
+  { ref:'FR-027', phase:'MVP 2', type:'functional', category:'Sharing',      priority:'must_have',   status:'approved',    linear_id:'REL-115', developer:'jon',   platform:'ios',     user_story:'US-016', title:'Share token + customer web page (Cloudflare Pages + Supabase API)' },
+  { ref:'FR-028', phase:'MVP 2', type:'functional', category:'Sharing',      priority:'must_have',   status:'approved',    linear_id:'REL-116', developer:'jon',   platform:'web',     user_story:'US-017', title:'Customer accept/decline on web quote page + tradie email notification' },
+  { ref:'FR-029', phase:'MVP 2', type:'functional', category:'Estimates',    priority:'should_have', status:'approved',    linear_id:'REL-117', developer:'jon',   platform:'ios',     user_story:'US-012', title:'Estimate lifecycle status UI + manual transitions' },
+  { ref:'FR-030', phase:'MVP 2', type:'functional', category:'Location',     priority:'should_have', status:'approved',    linear_id:'REL-113', developer:'jon',   platform:'ios',     user_story:'US-012', title:'Capture location as part of every estimation/quotation' },
+  { ref:'FR-031', phase:'MVP 2', type:'functional', category:'Photos',       priority:'should_have', status:'approved',    linear_id:'REL-71',  developer:'jon',   platform:'ios',     user_story:'US-008', title:'Photo capture UI in estimate flow' },
+  { ref:'FR-032', phase:'MVP 2', type:'functional', category:'Photos',       priority:'should_have', status:'draft',       linear_id:'REL-72',  developer:'jon',   platform:'backend', user_story:'US-008', title:'Supabase Storage bucket + RLS for photos' },
+  { ref:'FR-033', phase:'MVP 2', type:'functional', category:'Photos',       priority:'should_have', status:'draft',       linear_id:'REL-75',  developer:'jon',   platform:'ios',     user_story:'US-008', title:'Embed photos in generated PDF' },
+  { ref:'FR-034', phase:'MVP 2', type:'functional', category:'Analytics',    priority:'must_have',   status:'approved',    linear_id:'REL-50',  developer:'nhung', platform:'all',     user_story:'US-027', title:'Analytics integration — PostHog' },
+  { ref:'FR-035', phase:'MVP 2', type:'functional', category:'Pricing',      priority:'should_have', status:'approved',    linear_id:'REL-121', developer:'jon',   platform:'backend', user_story:'US-005', title:'Build Bunnings-Scraper material provider' },
+  { ref:'FR-036', phase:'MVP 2', type:'functional', category:'Pricing',      priority:'should_have', status:'approved',    linear_id:'REL-98',  developer:'jon',   platform:'backend', user_story:'US-005', title:'MaterialPricingProvider — getOffer(sku) + checkAvailability(sku)' },
+  { ref:'FR-037', phase:'MVP 2', type:'functional', category:'App Store',    priority:'must_have',   status:'in_progress', linear_id:'REL-31',  developer:'nhung', platform:'ios',     user_story:'US-018', title:'Apple Developer account (company enrollment + D-U-N-S)' },
+  { ref:'FR-038', phase:'MVP 2', type:'functional', category:'App Store',    priority:'must_have',   status:'approved',    linear_id:'REL-32',  developer:'nhung', platform:'ios',     user_story:'US-018', title:'App Store Connect — create app listing' },
+  { ref:'FR-039', phase:'MVP 2', type:'functional', category:'App Store',    priority:'must_have',   status:'draft',       linear_id:'REL-37',  developer:'nhung', platform:'ios',     user_story:'US-018', title:'App name, subtitle, description & keywords' },
+  { ref:'FR-040', phase:'MVP 2', type:'functional', category:'App Store',    priority:'must_have',   status:'draft',       linear_id:'REL-38',  developer:'nhung', platform:'ios',     user_story:'US-018', title:'App Store screenshots (6.7" and 6.1")' },
+  { ref:'FR-041', phase:'MVP 2', type:'functional', category:'Legal',        priority:'must_have',   status:'in_progress', linear_id:'REL-77',  developer:'nhung', platform:'all',     user_story:'US-013', title:'Privacy policy + T&Cs language — legal review' },
+  { ref:'FR-042', phase:'MVP 2', type:'functional', category:'Legal',        priority:'must_have',   status:'approved',    linear_id:'REL-34',  developer:'nhung', platform:'web',     user_story:'US-013', title:'Privacy policy URL live at reliaplatform.io/privacy' },
+  { ref:'FR-043', phase:'MVP 2', type:'functional', category:'Legal',        priority:'must_have',   status:'approved',    linear_id:'REL-35',  developer:'nhung', platform:'web',     user_story:'US-013', title:'Terms of service URL live at reliaplatform.io/terms' },
+  { ref:'FR-044', phase:'MVP 2', type:'functional', category:'Landing',      priority:'must_have',   status:'in_progress', linear_id:'REL-44',  developer:'nhung', platform:'web',     user_story:'US-015', title:'Wire up landing page waitlist form to Supabase' },
+  { ref:'FR-045', phase:'MVP 2', type:'functional', category:'Landing',      priority:'must_have',   status:'in_progress', linear_id:'REL-119', developer:'nhung', platform:'web',     user_story:'US-015', title:'Finalise MVP1 landing page' },
+  // ── MVP 3+ · Functional ─────────────────────────────────────────────────
+  { ref:'FR-046', phase:'MVP 3+', type:'functional', category:'Follow-up',   priority:'must_have',   status:'draft',       linear_id:'',        developer:'',      platform:'backend', user_story:'US-018', title:'Automated chase emails at day 2 and day 5 post-quote' },
+  { ref:'FR-047', phase:'MVP 3+', type:'functional', category:'Subscription',priority:'must_have',   status:'draft',       linear_id:'REL-24',  developer:'',      platform:'ios',     user_story:'US-022', title:'RevenueCat integration + paywall' },
+  { ref:'FR-048', phase:'MVP 3+', type:'functional', category:'Invoicing',   priority:'should_have', status:'draft',       linear_id:'',        developer:'',      platform:'ios',     user_story:'US-023', title:'Convert accepted quote to invoice' },
+  { ref:'FR-049', phase:'MVP 3+', type:'functional', category:'Platform',    priority:'could_have',  status:'draft',       linear_id:'REL-30',  developer:'',      platform:'web',     user_story:'US-031', title:'Web app deployment (Flutter web build)' },
+  // ── MVP 1 · Non-Functional ──────────────────────────────────────────────
+  { ref:'NFR-001', phase:'MVP 1', type:'non_functional', category:'Performance', priority:'must_have',  status:'implemented', linear_id:'', developer:'jon',   platform:'ios',     user_story:'', title:'App loads in under 2 seconds on 4G' },
+  { ref:'NFR-002', phase:'MVP 1', type:'non_functional', category:'Performance', priority:'must_have',  status:'implemented', linear_id:'', developer:'jon',   platform:'ios',     user_story:'', title:'Voice capture works offline — no network required' },
+  { ref:'NFR-003', phase:'MVP 1', type:'non_functional', category:'Performance', priority:'must_have',  status:'approved',    linear_id:'', developer:'jon',   platform:'ios',     user_story:'', title:'PDF generation completes in under 5 seconds' },
+  { ref:'NFR-004', phase:'MVP 1', type:'non_functional', category:'Security',    priority:'must_have',  status:'implemented', linear_id:'', developer:'jon',   platform:'backend', user_story:'', title:'All data encrypted at rest and in transit (Supabase)' },
+  { ref:'NFR-005', phase:'MVP 1', type:'non_functional', category:'Security',    priority:'must_have',  status:'implemented', linear_id:'', developer:'jon',   platform:'backend', user_story:'', title:'Row Level Security enforced on all Supabase tables' },
+  { ref:'NFR-006', phase:'MVP 1', type:'non_functional', category:'Compliance',  priority:'must_have',  status:'approved',    linear_id:'', developer:'nhung', platform:'ios',     user_story:'', title:'App Store Review Guidelines compliance' },
+  { ref:'NFR-007', phase:'MVP 1', type:'non_functional', category:'Compliance',  priority:'must_have',  status:'approved',    linear_id:'REL-89', developer:'jon', platform:'backend', user_story:'', title:'PII redacted from transcripts before AI processing' },
+  { ref:'NFR-008', phase:'MVP 1', type:'non_functional', category:'AI',          priority:'must_have',  status:'approved',    linear_id:'', developer:'jon',   platform:'backend', user_story:'', title:'End-to-end voice→materials latency under 15 seconds' },
+  // ── MVP 2+ · Non-Functional ─────────────────────────────────────────────
+  { ref:'NFR-009', phase:'MVP 2', type:'non_functional', category:'Performance', priority:'should_have', status:'draft',      linear_id:'', developer:'',      platform:'web',     user_story:'', title:'Customer web quote page loads in under 3 seconds' },
+  { ref:'NFR-010', phase:'MVP 2', type:'non_functional', category:'Availability',priority:'should_have', status:'draft',      linear_id:'', developer:'',      platform:'backend', user_story:'', title:'99.5% uptime SLA on Supabase + Cloudflare Workers' },
+  { ref:'NFR-011', phase:'MVP 2', type:'non_functional', category:'AI',          priority:'should_have', status:'draft',      linear_id:'', developer:'jon',   platform:'backend', user_story:'', title:'AI extraction accuracy >90% on common trade jobs' },
+  { ref:'NFR-012', phase:'MVP 3+', type:'non_functional', category:'Compliance', priority:'could_have',  status:'draft',      linear_id:'', developer:'',      platform:'all',     user_story:'', title:'WCAG 2.1 AA accessibility on all web surfaces' },
+];
+
+const UAT_SEED: UATTest[] = [
+  // ── Cycle 1 — Setup & Mockup to Working (COMPLETED Apr 12-17) ─────────────
+  { id:'u1',  ref:'UAT-001', cycle:'Cycle 1', req_ref:'FR-001', linear_id:'REL-5',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'iOS Speech Framework integrated via speech_to_text package',          title:'iOS Speech Framework integrates and returns transcript' },
+  { id:'u2',  ref:'UAT-002', cycle:'Cycle 1', req_ref:'FR-002', linear_id:'REL-6',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Real-time words appear as user speaks',                               title:'Real-time transcription streams words during recording' },
+  { id:'u3',  ref:'UAT-003', cycle:'Cycle 1', req_ref:'FR-003', linear_id:'REL-8',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'User can tap any word to correct it',                                 title:'Transcript is editable after recording stops' },
+  { id:'u4',  ref:'UAT-004', cycle:'Cycle 1', req_ref:'FR-004', linear_id:'REL-9',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Permission dialog shown; denied state handled gracefully',            title:'Mic permission requested on first use; error shown if denied' },
+  { id:'u5',  ref:'UAT-005', cycle:'Cycle 1', req_ref:'FR-005', linear_id:'REL-88',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Native iOS AI used instead of Deepgram — no network needed',          title:'Voice-to-text works using native iOS AI (offline capable)' },
+  { id:'u6',  ref:'UAT-006', cycle:'Cycle 1', req_ref:'FR-006', linear_id:'REL-99',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'GPT-4.1 extracts materials correctly for plumbing job',               title:'AI extracts material list from plumbing job description' },
+  { id:'u7',  ref:'UAT-007', cycle:'Cycle 1', req_ref:'FR-006', linear_id:'REL-99',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Electrical job (downlights) extracted correctly',                      title:'AI extracts material list from electrical job description' },
+  { id:'u8',  ref:'UAT-008', cycle:'Cycle 1', req_ref:'FR-008', linear_id:'REL-78',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Low-confidence items show yellow indicator',                          title:'Low-confidence materials flagged with confidence score indicator' },
+  { id:'u9',  ref:'UAT-009', cycle:'Cycle 1', req_ref:'FR-009', linear_id:'REL-106', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Correction events saved to Supabase for model improvement',           title:'User corrections captured as correction_events in DB' },
+  { id:'u10', ref:'UAT-010', cycle:'Cycle 1', req_ref:'FR-010', linear_id:'REL-105', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Full flow works end-to-end in single session',                        title:'Full flow: voice → transcript → materials → cost → PDF → saved' },
+  { id:'u11', ref:'UAT-011', cycle:'Cycle 1', req_ref:'FR-011', linear_id:'REL-109', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Price field editable inline; saved correctly',                        title:'Unpriced materials can have price entered manually' },
+  { id:'u12', ref:'UAT-012', cycle:'Cycle 1', req_ref:'FR-013', linear_id:'REL-103', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Labour screen appears before cost summary as intended',               title:'Labour capture step appears before Cost Summary screen' },
+  { id:'u13', ref:'UAT-013', cycle:'Cycle 1', req_ref:'FR-014', linear_id:'REL-69',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'GST added correctly; non-GST option available in settings',           title:'GST calculated correctly for GST-registered tradie' },
+  { id:'u14', ref:'UAT-014', cycle:'Cycle 1', req_ref:'FR-014', linear_id:'REL-69',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'No GST line shown when non-registered selected',                      title:'GST not applied when tradie marks themselves as non-registered' },
+  { id:'u15', ref:'UAT-015', cycle:'Cycle 1', req_ref:'FR-015', linear_id:'REL-67',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF labelled correctly based on selection',                           title:'Document type selector switches between Quote and Estimate on PDF' },
+  { id:'u16', ref:'UAT-016', cycle:'Cycle 1', req_ref:'FR-016', linear_id:'REL-114', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF matches preview layout; all line items present',                  title:'PDF generates with all line items, labour, GST, and total' },
+  { id:'u17', ref:'UAT-017', cycle:'Cycle 1', req_ref:'FR-017', linear_id:'REL-65',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Estimates persist after app restart; loaded from Supabase',           title:'Home screen lists all saved estimates from Supabase' },
+  { id:'u18', ref:'UAT-018', cycle:'Cycle 1', req_ref:'FR-018', linear_id:'REL-107', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF preview opens from home screen estimate row',                     title:'Tapping a saved estimate opens PDF preview mode' },
+  { id:'u19', ref:'UAT-019', cycle:'Cycle 1', req_ref:'FR-019', linear_id:'REL-81',  platform:'ios', version:'v0.8', tester:'nhung', date:'17 Apr', status:'passed',  notes:'Business name, ABN, trade, contact all saved correctly',             title:'Tradie can complete onboarding: trade + business details' },
+  { id:'u20', ref:'UAT-020', cycle:'Cycle 1', req_ref:'FR-021', linear_id:'REL-108', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Trades updated in Settings; reflected in new estimates',              title:'Tradie can edit trade types from Settings screen' },
+  { id:'u21', ref:'UAT-021', cycle:'Cycle 1', req_ref:'FR-022', linear_id:'REL-63',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Apple Sign-In flow completes; Supabase session created',              title:'Apple Sign-In authenticates and creates Supabase session' },
+  // ── Cycle 2 — App Store Submission (ACTIVE Apr 19 - May 1) ──────────────
+  { id:'u22', ref:'UAT-022', cycle:'Cycle 2', req_ref:'FR-045', linear_id:'REL-119', platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Waitlist form and hero copy to be verified',                          title:'Landing page hero, waitlist form, and CTA render correctly' },
+  { id:'u23', ref:'UAT-023', cycle:'Cycle 2', req_ref:'FR-044', linear_id:'REL-44',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Submission should appear in Supabase waitlist table',                 title:'Waitlist form submission saves email to Supabase' },
+  { id:'u24', ref:'UAT-024', cycle:'Cycle 2', req_ref:'FR-023', linear_id:'REL-86',  platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Must be available before App Store submission',                       title:'Account deletion flow available in Settings and completes successfully' },
+  { id:'u25', ref:'UAT-025', cycle:'Cycle 2', req_ref:'FR-041', linear_id:'REL-77',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Legal team to approve copy before going live',                        title:'Privacy policy page is live and legally reviewed' },
+  { id:'u26', ref:'UAT-026', cycle:'Cycle 2', req_ref:'FR-042', linear_id:'REL-34',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'URL must match what is submitted in App Store listing',               title:'Privacy policy URL accessible at reliaplatform.io/privacy' },
+  { id:'u27', ref:'UAT-027', cycle:'Cycle 2', req_ref:'FR-043', linear_id:'REL-35',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'URL must match what is submitted in App Store listing',               title:'Terms of service URL accessible at reliaplatform.io/terms' },
+  { id:'u28', ref:'UAT-028', cycle:'Cycle 2', req_ref:'FR-027', linear_id:'REL-115', platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Share token generated; web page renders quote details',               title:'Share token generated; customer web page renders quote correctly' },
+  { id:'u29', ref:'UAT-029', cycle:'Cycle 2', req_ref:'FR-028', linear_id:'REL-116', platform:'web', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Accept triggers tradie email notification',                           title:'Customer can accept or decline quote on web page; tradie notified' },
+  { id:'u30', ref:'UAT-030', cycle:'Cycle 2', req_ref:'FR-030', linear_id:'REL-113', platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Location captured silently during estimation flow',                   title:'Location captured and stored with each estimate' },
+  { id:'u31', ref:'UAT-031', cycle:'Cycle 2', req_ref:'FR-034', linear_id:'REL-50',  platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'draft',   notes:'PostHog events firing for key actions',                               title:'PostHog analytics events fire for voice start, quote sent, accepted' },
+  { id:'u32', ref:'UAT-032', cycle:'Cycle 2', req_ref:'FR-037', linear_id:'REL-31',  platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'D-U-N-S number required for company enrollment',                     title:'Apple Developer account enrolled as company with D-U-N-S' },
+  { id:'u33', ref:'UAT-033', cycle:'Cycle 2', req_ref:'NFR-006', linear_id:'REL-41', platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'draft',   notes:'Check all App Review guidelines before submission',                   title:'App Review compliance checklist completed — no violations' },
+];
 
 // ── Pill component ────────────────────────────────────────────────────────
 const STATUS_MAP: Record<string,string> = { todo:'p-todo', prog:'p-prog', review:'p-review', done:'p-done', block:'p-block', draft:'p-draft', active:'p-active', prospect:'p-prospect', passed:'p-passed', failed:'p-failed', in_progress:'p-prog', must_have:'p-must', should_have:'p-should', could_have:'p-could', wont_have:'p-wont', implemented:'p-done', approved:'p-review', closed_won:'p-done', trial:'p-review', qualified:'p-prog' };
@@ -1864,8 +1968,8 @@ const STORIES_SEED = [
 ];
 
 type UserStory = typeof STORIES_SEED[0];
-type Req = { ref: string; type: string; category: string; title: string; priority: string; status: string; linear_id: string; developer?: string; platform?: string; user_story?: string };
-type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string };
+type Req = { ref: string; type: string; category: string; title: string; priority: string; status: string; linear_id: string; developer?: string; platform?: string; user_story?: string; phase?: string };
+type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform: string; version: string; cycle?: string };
 
 // ── Shared data context ────────────────────────────────────────────────────
 interface AppDataCtx {
@@ -2192,7 +2296,13 @@ function RequirementsView() {
     loadLinearFromSupabase().then(stored => setLinearIssues(stored.map(s => ({ id: s.linear_id, identifier: s.identifier, title: s.title, state: { name: s.status, type: s.status }, priority: s.priority, assignee: null, team: null, labels: { nodes: [] }, url: s.linear_url }))));
   }, []);
 
-  const shown = filter === 'all' ? reqs : reqs.filter(r => r.type === filter);
+  const [phaseFilter, setPhaseFilter] = useState('all');
+  const shown = reqs.filter(r => {
+    if (filter !== 'all' && r.type !== filter) return false;
+    if (phaseFilter !== 'all' && r.phase !== phaseFilter) return false;
+    return true;
+  });
+  const phases = ['MVP 1','MVP 2','MVP 3+'];
   const upd = (ref: string, f: string, v: string) => setReqs(rs => rs.map(r => r.ref === ref ? {...r, [f]: v} : r));
 
   const addReq = () => {
@@ -2259,26 +2369,37 @@ function RequirementsView() {
         </div>
       )}
 
+      {/* Phase filter */}
+      <div style={{ display:'flex', gap:6, marginBottom:10 }}>
+        {['all',...phases].map(p => (
+          <button key={p} className={`filter-chip${phaseFilter===p?' on':''}`} onClick={() => setPhaseFilter(p)}>
+            {p==='all'?'All phases':p}
+            {p!=='all' && <span style={{ marginLeft:5, fontFamily:'var(--font-mono)', fontSize:9 }}>({reqs.filter(r=>r.phase===p).length})</span>}
+          </button>
+        ))}
+      </div>
+
       <div className="tab-bar">
         {(['all','functional','non_functional'] as const).map(f => (
           <button key={f} className={`tab-btn${filter===f?' active':''}`} onClick={() => setFilter(f)}>
-            {f==='all'?`All (${reqs.length})`:f==='functional'?`Functional (${reqs.filter(r=>r.type==='functional').length})`:`Non-functional (${reqs.filter(r=>r.type==='non_functional').length})`}
+            {f==='all'?`All (${shown.length})`:f==='functional'?`Functional (${shown.filter(r=>r.type==='functional').length})`:`Non-functional (${shown.filter(r=>r.type==='non_functional').length})`}
           </button>
         ))}
       </div>
 
       <div className="data-card">
         <table className="data-table">
-          <thead><tr><th>Ref</th><th>User story</th><th>Category</th><th>Title</th><th>Platform</th><th>Developer</th><th>Priority</th><th>Status</th><th>Linear</th><th></th></tr></thead>
+          <thead><tr><th>Ref</th><th>Phase</th><th>Category</th><th>Title</th><th>Platform</th><th>Developer</th><th>Priority</th><th>Status</th><th>Linear</th><th></th></tr></thead>
           <tbody>
             {shown.map(r => (
               <>
               <tr key={r.ref} style={{ cursor:'pointer' }} onClick={() => setExpanded(e => e===r.ref ? null : r.ref)}>
                 <td><span className="mono">{r.ref}</span></td>
                 <td>
-                  <select value={(r as { user_story?: string }).user_story ?? ''} onChange={e => upd(r.ref,'user_story',e.target.value)} style={{ fontFamily:'var(--font-mono)', fontSize:10, background:'transparent', border:'none', color:'var(--navy)', cursor:'pointer', padding:0 }}>
-                    <option value="">—</option>
-                    {STORIES_SEED.map(s => <option key={s.ref} value={s.ref}>{s.ref}</option>)}
+                  <select value={(r as Req).phase ?? 'MVP 1'} onChange={e => upd(r.ref,'phase',e.target.value)}
+                    style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.06em', background:'transparent', border:'none', cursor:'pointer', padding:0, fontWeight:600,
+                      color:(r as Req).phase==='MVP 1'?'var(--bottle-deep)':(r as Req).phase==='MVP 2'?'var(--navy)':'var(--fg3)' }}>
+                    {phases.map(p=><option key={p}>{p}</option>)}
                   </select>
                 </td>
                 <td>
@@ -2402,6 +2523,7 @@ function UATTestRow({ t, upd, linearIssues }: {
     <>
       <tr style={{ cursor:'pointer' }} onClick={handleExpand}>
         <td><span className="mono">{t.ref}</span></td>
+        <td><span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.06em', padding:'2px 6px', borderRadius:3, background: t.cycle==='Cycle 1'?'var(--bottle-soft)':t.cycle==='Cycle 2'?'var(--blue-soft)':'var(--slate)', color: t.cycle==='Cycle 1'?'var(--bottle-deep)':t.cycle==='Cycle 2'?'var(--blue-hover)':'var(--fg3)', whiteSpace:'nowrap' }}>{t.cycle ?? '—'}</span></td>
         <td onClick={e => e.stopPropagation()}>
           <select value={t.platform ?? 'all'} onChange={e => upd(t.id,'platform',e.target.value)}
             style={{ fontFamily:'var(--font-mono)', fontSize:10, letterSpacing:'0.06em', background:'transparent', border:'none', cursor:'pointer', padding:0,
@@ -2504,7 +2626,10 @@ function UATView() {
     setAdding(false);
   };
 
-  const summary = { passed: tests.filter(t=>t.status==='passed').length, failed: tests.filter(t=>t.status==='failed').length, in_progress: tests.filter(t=>t.status==='in_progress').length, draft: tests.filter(t=>t.status==='draft').length };
+  const [cycleFilter, setCycleFilter] = useState('all');
+  const uatCycles = [...new Set(tests.map(t => t.cycle).filter(Boolean))].sort() as string[];
+  const filteredTests = cycleFilter === 'all' ? tests : tests.filter(t => t.cycle === cycleFilter);
+  const summary = { passed: filteredTests.filter(t=>t.status==='passed').length, failed: filteredTests.filter(t=>t.status==='failed').length, in_progress: filteredTests.filter(t=>t.status==='in_progress').length, draft: filteredTests.filter(t=>t.status==='draft'||t.status==='ready').length };
 
   return (
     <div className="hub-page">
@@ -2546,13 +2671,25 @@ function UATView() {
           </div>
         </div>
       )}
+      {/* Cycle filter */}
+      {uatCycles.length > 0 && (
+        <div className="filter-strip">
+          <button className={`filter-chip${cycleFilter==='all'?' on':''}`} onClick={()=>setCycleFilter('all')}>All cycles ({tests.length})</button>
+          {uatCycles.map(c => (
+            <button key={c} className={`filter-chip${cycleFilter===c?' on':''}`} onClick={()=>setCycleFilter(c)}>
+              {c} <span style={{marginLeft:4,opacity:0.7}}>({tests.filter(t=>t.cycle===c).length})</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="data-card">
-        {tests.length === 0 && !adding && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>No UAT tests yet. Add your first above.</div>}
-        {tests.length > 0 && (
+        {filteredTests.length === 0 && !adding && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>{tests.length === 0 ? 'No UAT tests yet. Add your first above.' : 'No tests in this cycle.'}</div>}
+        {filteredTests.length > 0 && (
           <table className="data-table">
-            <thead><tr><th>Ref</th><th>Platform</th><th>Version</th><th>Test</th><th>Linear</th><th>Tester</th><th>Status</th><th>Images</th></tr></thead>
+            <thead><tr><th>Ref</th><th>Cycle</th><th>Platform</th><th>Version</th><th>Test</th><th>Linear</th><th>Tester</th><th>Status</th><th>Images</th></tr></thead>
             <tbody>
-              {tests.map(t => <UATTestRow key={t.id} t={t} upd={upd} linearIssues={linearIssues} />)}
+              {filteredTests.map(t => <UATTestRow key={t.id} t={t} upd={upd} linearIssues={linearIssues} />)}
             </tbody>
           </table>
         )}
