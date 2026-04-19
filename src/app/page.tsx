@@ -1104,6 +1104,248 @@ function priorityLabel(p: number) { return ['No priority','Urgent','High','Mediu
 function priorityColor(p: number) { return [,'var(--red)','var(--butter-deep)','var(--navy-soft)','var(--fg3)'][p] ?? 'var(--fg3)'; }
 function initials(name: string) { return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(); }
 
+// ── Dev dashboard ─────────────────────────────────────────────────────────
+function DevDashboard() {
+  const { stories, reqs, tests } = useAppData();
+  const [cycles, setCycles] = useState<LinearCycle[]>([]);
+  const [urgentIssues, setUrgentIssues] = useState<StoredIssue[]>([]);
+  const [tab, setTab] = useState<'overview'|'timeline'>('overview');
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_LINEAR_API_KEY ?? '';
+    if (!key) return;
+    fetch('https://api.linear.app/graphql', { method:'POST', headers:{'Content-Type':'application/json','Authorization':key},
+      body: JSON.stringify({ query:`{ cycles(first:10, orderBy:updatedAt) { nodes { id name number startsAt endsAt completedAt progress issues { nodes { id identifier title state { name type } priority assignee { name displayName } team { name } labels { nodes { name color } } url } } } } }` }) })
+      .then(r=>r.json()).then((d:{data?:{cycles?:{nodes:LinearCycle[]}}}) => setCycles([...(d.data?.cycles?.nodes??[])].sort((a,b)=>b.number-a.number)));
+    loadLinearFromSupabase().then(all => setUrgentIssues(all.filter(i => i.priority <= 2 && i.status !== 'done' && i.status !== 'cancelled')));
+  }, []);
+
+  // Stats
+  const mvp1 = stories.filter(s => s.mvp === 'MVP 1');
+  const mvp1Done = mvp1.filter(s => s.status === 'done').length;
+  const uatPassed = tests.filter(t => t.status === 'passed').length;
+  const uatFailed = tests.filter(t => t.status === 'failed').length;
+  const totalTests = tests.length;
+  const reqsApproved = reqs.filter(r => r.status === 'implemented' || r.status === 'approved').length;
+  const activeCycle = cycles.find(c => !c.completedAt);
+  const urgentCount = urgentIssues.filter(i => i.priority === 1).length;
+
+  // Timeline helpers
+  const cyclesWithDates = cycles.filter(c => c.startsAt && c.endsAt);
+  const timelineStart = cyclesWithDates.length ? new Date(Math.min(...cyclesWithDates.map(c => new Date(c.startsAt).getTime()))) : new Date();
+  const timelineEnd   = cyclesWithDates.length ? new Date(Math.max(...cyclesWithDates.map(c => new Date(c.endsAt).getTime()))) : new Date();
+  const totalMs = Math.max(timelineEnd.getTime() - timelineStart.getTime(), 1);
+
+  // Generate month headers
+  const months: Date[] = [];
+  if (cyclesWithDates.length) {
+    const cur = new Date(timelineStart.getFullYear(), timelineStart.getMonth(), 1);
+    while (cur <= timelineEnd) { months.push(new Date(cur)); cur.setMonth(cur.getMonth()+1); }
+  }
+
+  const barLeft  = (iso: string) => Math.max(0, ((new Date(iso).getTime() - timelineStart.getTime()) / totalMs) * 100);
+  const barWidth = (start: string, end: string) => Math.min(100 - barLeft(start), ((new Date(end).getTime() - new Date(start).getTime()) / totalMs) * 100);
+  const cycleColor = (c: LinearCycle) => c.completedAt ? 'var(--slate-deep)' : !c.completedAt && new Date(c.endsAt) > new Date() ? 'var(--navy)' : 'var(--navy-soft)';
+
+  const failedTests = tests.filter(t => t.status === 'failed');
+  const blockedIssues = urgentIssues.filter(i => i.status === 'cancelled' || i.priority === 1);
+
+  return (
+    <div className="hub-page">
+      <div className="breadcrumb"><span>Dev</span><span className="sep">·</span><b>Dashboard</b></div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
+        <div>
+          <h1 className="page-heading">Dev <em>overview</em></h1>
+          <p style={{ fontSize:13, color:'var(--fg3)', marginTop:4 }}>MVP 1 progress, active cycle, and things that need attention.</p>
+        </div>
+        <div className="tab-bar" style={{ marginBottom:0 }}>
+          <button className={`tab-btn${tab==='overview'?' active':''}`} onClick={()=>setTab('overview')}>Overview</button>
+          <button className={`tab-btn${tab==='timeline'?' active':''}`} onClick={()=>setTab('timeline')}>Timeline</button>
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div className="stat-row" style={{ marginBottom:28 }}>
+        <div className="stat-card accent">
+          <div className="stat-label">MVP 1 stories</div>
+          <div className="stat-value">{mvp1Done}<small>/{mvp1.length}</small></div>
+          <div style={{ marginTop:8, height:4, background:'rgba(255,255,255,0.15)', borderRadius:999 }}>
+            <div style={{ width:`${mvp1.length ? (mvp1Done/mvp1.length)*100 : 0}%`, height:'100%', background:'var(--butter)', borderRadius:999, transition:'width 0.4s' }} />
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">UAT passing</div>
+          <div className="stat-value" style={{ color: uatFailed > 0 ? 'var(--red)' : 'var(--bottle)' }}>{totalTests ? `${Math.round((uatPassed/totalTests)*100)}` : '—'}{totalTests ? <small>%</small> : null}</div>
+          <div className="stat-delta" style={{ color:'var(--fg3)' }}>{uatPassed} passed · <span style={{ color:'var(--red)' }}>{uatFailed} failed</span></div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Urgent issues</div>
+          <div className="stat-value" style={{ color: urgentCount > 0 ? 'var(--red)' : 'var(--bottle)' }}>{urgentCount}</div>
+          <div className="stat-delta">{urgentIssues.length} high priority total</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Requirements</div>
+          <div className="stat-value">{reqsApproved}<small>/{reqs.length}</small></div>
+          <div className="stat-delta">approved or live</div>
+        </div>
+      </div>
+
+      {tab === 'overview' && (
+        <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:20 }}>
+          {/* Left column */}
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+            {/* Urgent & blocked */}
+            <div className="data-card">
+              <div className="data-card-head">
+                <h3>🔴 Needs attention</h3>
+                <button className="btn btn-ghost btn-sm" onClick={() => navigate('dev','inflight')}>All issues →</button>
+              </div>
+              {urgentIssues.length === 0 && blockedIssues.length === 0 && failedTests.length === 0
+                ? <div style={{ padding:'20px', color:'var(--bottle)', fontSize:13, textAlign:'center' }}>Nothing urgent. Good.</div>
+                : <div>
+                    {urgentIssues.slice(0,4).map(i => (
+                      <div key={i.linear_id} style={{ display:'grid', gridTemplateColumns:'64px 1fr auto', gap:12, alignItems:'center', padding:'10px 20px', borderBottom:'1px solid var(--border)' }}>
+                        <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)', letterSpacing:'0.06em' }}>{i.identifier}</span>
+                        <span style={{ fontSize:13, fontWeight:500, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{i.title}</span>
+                        <span style={{ fontFamily:'var(--font-mono)', fontSize:9, padding:'3px 7px', borderRadius:3, background: i.priority===1?'var(--red-soft)':'var(--butter-soft)', color: i.priority===1?'var(--red-deep)':'var(--butter-deep)', letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap' }}>{i.priority===1?'Urgent':'High'}</span>
+                      </div>
+                    ))}
+                    {failedTests.map(t => (
+                      <div key={t.id} style={{ display:'grid', gridTemplateColumns:'64px 1fr auto', gap:12, alignItems:'center', padding:'10px 20px', borderBottom:'1px solid var(--border)' }}>
+                        <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)', letterSpacing:'0.06em' }}>{t.ref}</span>
+                        <span style={{ fontSize:13, fontWeight:500, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</span>
+                        <span style={{ fontFamily:'var(--font-mono)', fontSize:9, padding:'3px 7px', borderRadius:3, background:'var(--red-soft)', color:'var(--red-deep)', letterSpacing:'0.08em', textTransform:'uppercase' }}>UAT Failed</span>
+                      </div>
+                    ))}
+                  </div>
+              }
+            </div>
+
+            {/* Active cycle */}
+            {activeCycle && (
+              <div className="data-card">
+                <div className="data-card-head">
+                  <h3>{activeCycle.name ?? `Cycle ${activeCycle.number}`} <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'var(--bottle)', marginLeft:6 }}>● ACTIVE</span></h3>
+                  <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)' }}>
+                    {new Date(activeCycle.startsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – {new Date(activeCycle.endsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}
+                  </span>
+                </div>
+                <div style={{ padding:'14px 20px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                    <span style={{ fontSize:13, color:'var(--fg3)' }}>{activeCycle.issues.nodes.length} issues</span>
+                    <span style={{ fontFamily:'var(--font-body)', fontSize:14, fontWeight:700, color:'var(--bottle)' }}>{Math.round(activeCycle.progress)}%</span>
+                  </div>
+                  <div style={{ height:8, background:'var(--slate)', borderRadius:999, marginBottom:16 }}>
+                    <div style={{ width:`${activeCycle.progress}%`, height:'100%', background:'var(--bottle)', borderRadius:999, transition:'width 0.4s' }} />
+                  </div>
+                  {activeCycle.issues.nodes.slice(0,5).map(i => (
+                    <div key={i.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:8, marginBottom:8, borderBottom:'1px solid var(--border)', fontSize:13 }}>
+                      <span style={{ color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, marginRight:12 }}>{i.title}</span>
+                      <Pill s={linearStatusToPill(i.state.type)} label={i.state.name} />
+                    </div>
+                  ))}
+                  {activeCycle.issues.nodes.length > 5 && <div style={{ fontSize:12, color:'var(--fg3)', textAlign:'center', paddingTop:4 }}>+{activeCycle.issues.nodes.length-5} more</div>}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right column */}
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+            {/* MVP 1 story progress */}
+            <div className="data-card">
+              <div className="data-card-head">
+                <h3>MVP 1 stories</h3>
+                <button className="btn btn-ghost btn-sm" onClick={() => navigate('dev','stories')}>All →</button>
+              </div>
+              <div style={{ padding:'12px 20px' }}>
+                {mvp1.map(s => (
+                  <div key={s.ref} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                    <span style={{ width:8, height:8, borderRadius:'50%', background: s.status==='done'?'var(--bottle)':s.status==='in_progress'?'var(--butter)':'var(--slate-deep)', flexShrink:0 }} />
+                    <span style={{ fontSize:12, color: s.status==='done'?'var(--fg3)':'var(--fg1)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: s.status==='done'?'line-through':undefined }}>{s.i_want_to}</span>
+                    <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.08em', textTransform:'uppercase', color: s.status==='done'?'var(--bottle)':s.status==='in_progress'?'var(--butter-deep)':'var(--fg3)', flexShrink:0 }}>{s.status.replace('_',' ')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick links */}
+            <div className="data-card">
+              <div className="data-card-head"><h3>Quick links</h3></div>
+              <div style={{ padding:'8px 0' }}>
+                {[
+                  { label:'Add UAT test',        icon:'plus',   action: () => navigate('dev','uat') },
+                  { label:'Add requirement',      icon:'plus',   action: () => navigate('dev','requirements') },
+                  { label:'View user stories',    icon:'wiki',   action: () => navigate('dev','stories') },
+                  { label:'Activity feed',        icon:'log',    action: () => navigate('dev','activity') },
+                ].map(l => (
+                  <button key={l.label} onClick={l.action} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 20px', width:'100%', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--fg2)', textAlign:'left', borderBottom:'1px solid var(--border)', transition:'background 0.1s' }}
+                    onMouseEnter={e=>(e.currentTarget.style.background='var(--slate-soft)')}
+                    onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                    <span style={{ color:'var(--red)' }}><Ic n={l.icon} size={14} /></span>
+                    {l.label}
+                    <span style={{ marginLeft:'auto', color:'var(--fg3)', fontSize:16, fontFamily:'var(--font-display)', fontStyle:'italic' }}>→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Timeline tab */}
+      {tab === 'timeline' && (
+        <div className="data-card">
+          <div className="data-card-head"><h3>Cycle timeline</h3><span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--fg3)' }}>{cycles.length} cycles</span></div>
+          {cyclesWithDates.length === 0
+            ? <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>No cycle date data available — sync Linear to populate.</div>
+            : (
+              <div style={{ padding:'20px', overflowX:'auto' }}>
+                {/* Month headers */}
+                <div style={{ display:'grid', gridTemplateColumns:`180px repeat(${months.length}, 1fr)`, gap:0, marginBottom:8 }}>
+                  <div />
+                  {months.map(m => (
+                    <div key={m.getTime()} style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color: m.getMonth()===new Date().getMonth()&&m.getFullYear()===new Date().getFullYear()?'var(--navy)':'var(--fg3)', textAlign:'center', padding:'0 2px', borderLeft:'1px solid var(--border)', paddingBottom:8, fontWeight: m.getMonth()===new Date().getMonth()&&m.getFullYear()===new Date().getFullYear()?700:400 }}>
+                      {m.toLocaleDateString('en-AU',{month:'short',year:'2-digit'})}
+                    </div>
+                  ))}
+                </div>
+                {/* Cycle rows */}
+                {[...cyclesWithDates].sort((a,b)=>a.number-b.number).map(c => (
+                  <div key={c.id} style={{ display:'grid', gridTemplateColumns:`180px 1fr`, gap:0, marginBottom:6, alignItems:'center' }}>
+                    <div style={{ paddingRight:16 }}>
+                      <div style={{ fontSize:13, fontWeight:500, color:'var(--fg1)' }}>{c.name ?? `Cycle ${c.number}`}</div>
+                      <div style={{ fontFamily:'var(--font-mono)', fontSize:9, color: c.completedAt?'var(--fg3)':!c.completedAt?'var(--bottle)':'var(--fg3)', letterSpacing:'0.08em', textTransform:'uppercase' }}>{c.completedAt?'Complete':'Active'}</div>
+                    </div>
+                    <div style={{ position:'relative', height:28, background:'var(--slate)', borderRadius:4 }}>
+                      {/* Current month marker */}
+                      {(() => {
+                        const now = new Date();
+                        const nowPct = ((now.getTime()-timelineStart.getTime())/totalMs)*100;
+                        return nowPct>0&&nowPct<100 ? <div style={{ position:'absolute', left:`${nowPct}%`, top:0, bottom:0, width:1.5, background:'var(--red)', opacity:0.6, zIndex:2 }} /> : null;
+                      })()}
+                      <div style={{ position:'absolute', left:`${barLeft(c.startsAt)}%`, width:`${barWidth(c.startsAt,c.endsAt)}%`, height:'100%', background:cycleColor(c), borderRadius:4, display:'flex', alignItems:'center', paddingLeft:8, minWidth:4, overflow:'hidden', transition:'width 0.3s' }}>
+                        {barWidth(c.startsAt,c.endsAt) > 8 && <span style={{ fontFamily:'var(--font-mono)', fontSize:9, color:'rgba(255,255,255,0.8)', letterSpacing:'0.06em', whiteSpace:'nowrap' }}>{Math.round(c.progress)}%</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ marginTop:12, display:'flex', gap:16, fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--fg3)' }}>
+                  <span><span style={{ display:'inline-block', width:10, height:10, background:'var(--navy)', borderRadius:2, marginRight:4 }} />Active</span>
+                  <span><span style={{ display:'inline-block', width:10, height:10, background:'var(--slate-deep)', borderRadius:2, marginRight:4 }} />Complete</span>
+                  <span><span style={{ display:'inline-block', width:2, height:10, background:'var(--red)', marginRight:4 }} />Today</span>
+                </div>
+              </div>
+            )
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── DEV sections ──────────────────────────────────────────────────────────
 function InflightView() {
   const [tab] = useState<'list'>('list');
