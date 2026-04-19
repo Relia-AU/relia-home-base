@@ -54,12 +54,48 @@
   --sidebar-w: 220px;
 }
 
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
+body.theme-dark {
+  --navy-deep:   #E8EDF0;
+  --navy:        #C0CEDD;
+  --navy-soft:   #8FA1B8;
+  --slate:       #0B1628;
+  --slate-soft:  #12213C;
+  --slate-deep:  #1F3157;
+  --fg1:         #F0F3F6;
+  --fg2:         #C0CEDD;
+  --fg3:         #8FA1B8;
+  --bg-page:     #0B1628;
+  --bg-card:     #12213C;
+  --bg-nav:      #050B17;
+  --border:      #1F3157;
+  --red:         #F87171;
+  --red-soft:    rgba(220,38,38,0.18);
+  --red-deep:    #FCA5A5;
+  --bottle:      #4ADE80;
+  --bottle-soft: rgba(17,94,58,0.25);
+  --bottle-deep: #86EFAC;
+  --butter:      #FACC15;
+  --butter-soft: rgba(244,197,66,0.15);
+  --butter-deep: #FDE68A;
+  --blue:        #60A5FA;
+  --blue-soft:   rgba(23,133,248,0.18);
+}
+
+/* ── Density compact ─────────────────────────────────────────────────────── */
+body.density-compact {
+  --row-pad:    8px;
+  --card-pad:   16px;
+  --section-gap: 24px;
+  font-size: 14px;
+}
+
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;  /* brand book spec */
   line-height: 1.55;
   color: var(--fg1);
   background: var(--bg-page);
@@ -628,14 +664,15 @@ button { font-family: var(--font-body); cursor: pointer; }
 .issue-row .iavatar.m { background: var(--red); }
 .issue-row .iavatar.s { background: var(--bottle); }
 
-/* ── Status pills ────────────────────────────────────────────────────────── */
+/* ── Status pills — brand book spec ─────────────────────────────────────── */
 .pill {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
-  padding: 3px 8px; border-radius: 999px;
-  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+  padding: 6px 11px; border-radius: 4px;
+  display: inline-flex; align-items: center; gap: 7px;
   text-transform: uppercase; white-space: nowrap;
 }
-.pill .dot { width: 5px; height: 5px; border-radius: 999px; flex-shrink: 0; }
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .p-todo    { background: var(--slate); color: var(--fg2); }         .p-todo .dot    { background: var(--fg3); }
 .p-prog    { background: var(--butter-soft); color: var(--butter-deep); } .p-prog .dot    { background: var(--butter); }
 .p-review  { background: var(--blue-soft); color: var(--blue-hover); }  .p-review .dot  { background: var(--blue); }
@@ -729,19 +766,46 @@ button { font-family: var(--font-body); cursor: pointer; }
 .form-field textarea { resize: vertical; min-height: 72px; }
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-/* ── Btn ─────────────────────────────────────────────────────────────────── */
+/* ── Buttons — brand book spec ───────────────────────────────────────────── */
 .btn {
-  font-family: var(--font-body); font-size: 12px; font-weight: 500;
-  padding: 7px 14px; border-radius: 6px; border: none; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s;
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  padding: 11px 20px; border-radius: 6px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  line-height: 1;
 }
-.btn-primary { background: var(--navy-deep); color: #fff; }
-.btn-primary:hover { background: var(--navy); }
-.btn-secondary { background: var(--bg-card); color: var(--fg1); border: 1px solid var(--border); }
+.btn-primary {
+  background: var(--navy-deep); color: var(--slate);
+}
+.btn-primary:hover {
+  background: var(--navy);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30,58,138,0.3);
+}
+.btn-butter {
+  background: var(--butter); color: var(--navy-deep);
+}
+.btn-butter:hover { background: var(--butter-deep); color: #fff; }
+.btn-secondary {
+  background: var(--bg-card); color: var(--fg1);
+  border: 1px solid var(--border);
+  padding: 10px 19px;
+}
 .btn-secondary:hover { background: var(--slate); }
-.btn-ghost { background: transparent; color: var(--fg3); border: 1px solid var(--border); }
-.btn-ghost:hover { color: var(--fg1); border-color: var(--navy-soft); }
-.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-ghost {
+  background: transparent; color: var(--navy-soft);
+  border: 1px solid transparent;
+  padding: 10px 19px;
+}
+.btn-ghost:hover { color: var(--navy-deep); }
+.btn-outline {
+  background: transparent; color: var(--navy-deep);
+  border: 1px solid var(--navy-deep);
+  padding: 10px 19px;
+}
+.btn-outline:hover { background: var(--navy-deep); color: var(--slate); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-sm.btn-secondary, .btn-sm.btn-ghost, .btn-sm.btn-outline { padding: 4px 11px; }
 
 /* ── Filter pills ────────────────────────────────────────────────────────── */
 .filter-strip { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -754,21 +818,55 @@ button { font-family: var(--font-body); cursor: pointer; }
 .filter-chip:hover { color: var(--fg1); border-color: var(--navy-soft); }
 .filter-chip.on { background: var(--navy-deep); color: #fff; border-color: var(--navy-deep); }
 
-/* ── Stamp watermark ─────────────────────────────────────────────────────── */
+/* ── Stamp — brand book spec ─────────────────────────────────────────────── */
 .stamp-wm {
   position: fixed; bottom: 24px; right: 24px;
-  width: 56px; height: 56px;
-  border: 1.2px solid var(--red); border-radius: 999px;
-  display: grid; place-items: center;
-  font-family: var(--font-display); font-style: italic;
-  font-size: 34px; color: var(--red);
-  transform: rotate(-6deg); opacity: 0.18;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: var(--slate-soft);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(-4deg); opacity: 0.22;
   pointer-events: none; z-index: 1;
 }
-.stamp-wm::before {
-  content: ''; position: absolute; inset: 4px;
-  border: 1px solid var(--red); border-radius: 999px; opacity: 0.4;
+.stamp-wm .r {
+  font-family: var(--font-mono);
+  font-size: 26px; font-weight: 500;
+  line-height: 1; margin-top: -2px;
+  color: var(--navy-deep);
 }
+
+/* ── Settings panel ──────────────────────────────────────────────────────── */
+.settings-panel {
+  position: fixed; top: calc(var(--nav-h) + 8px); right: 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  padding: 18px 20px; width: 260px; z-index: 100;
+}
+.settings-panel h4 {
+  font-family: var(--font-display); font-style: italic;
+  font-weight: 500; font-size: 17px;
+  margin: 0 0 14px; color: var(--fg1);
+}
+.settings-panel h4 em { color: var(--red); }
+.tw-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px;
+}
+.tw-row:first-of-type { border-top: 0; }
+.tw-row .lab { color: var(--fg1); }
+.seg {
+  display: inline-flex; background: var(--slate);
+  border-radius: 6px; padding: 2px; gap: 1px;
+}
+body.theme-dark .seg { background: rgba(255,255,255,0.06); }
+.seg button {
+  background: transparent; border: 0; padding: 4px 8px;
+  font-size: 11px; font-family: var(--font-body); color: var(--fg3);
+  cursor: pointer; border-radius: 4px; font-weight: 500;
+  transition: background 0.1s, color 0.1s;
+}
+.seg button.on { background: var(--bg-card); color: var(--fg1); box-shadow: var(--shadow-sm); }
+body.theme-dark .seg button.on { background: var(--slate-deep); }
 
 /* ── Research quote editable ─────────────────────────────────────────────── */
 .research-quote {

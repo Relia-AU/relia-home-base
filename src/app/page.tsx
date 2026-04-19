@@ -1693,9 +1693,34 @@ function LandingPage() {
   );
 }
 
+// ── Display settings ──────────────────────────────────────────────────────
+interface DisplaySettings { theme: 'light'|'dark'; density: 'cosy'|'compact'; nav: 'side'|'top'; }
+const DISPLAY_DEFAULTS: DisplaySettings = { theme: 'light', density: 'cosy', nav: 'top' };
+
 // ── Root ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [route, setRoute] = useState<Route>({ hub: '', section: '' });
+  const [settings, setSettings] = useState<DisplaySettings>(DISPLAY_DEFAULTS);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('relia-display');
+    if (saved) { try { setSettings(JSON.parse(saved)); } catch {} }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    document.body.classList.toggle('theme-dark', settings.theme === 'dark');
+    document.body.classList.toggle('density-compact', settings.density === 'compact');
+  }, [settings, hydrated]);
+
+  const updateSetting = <K extends keyof DisplaySettings>(key: K, value: DisplaySettings[K]) => {
+    const next = { ...settings, [key]: value };
+    setSettings(next);
+    localStorage.setItem('relia-display', JSON.stringify(next));
+  };
 
   useEffect(() => {
     const handle = () => { setRoute(parseRoute(window.location.hash)); window.scrollTo(0,0); };
@@ -1707,6 +1732,7 @@ export default function App() {
   const hub = route.hub as keyof typeof HUBS | '';
   const isLanding = !hub || !HUBS[hub as keyof typeof HUBS];
   const hubDef = hub && HUBS[hub as keyof typeof HUBS] ? HUBS[hub as keyof typeof HUBS] : null;
+  const navTop = settings.nav === 'top';
 
   const renderContent = () => {
     if (isLanding) return <LandingPage />;
@@ -1757,18 +1783,63 @@ export default function App() {
         </div>
         <div className="nav-spacer" />
         <button className="nav-search"><Ic n="search" size={12} />Search<span className="shortcut">⌘K</span></button>
+        <button
+          onClick={() => setSettingsOpen(o => !o)}
+          style={{ background: settingsOpen ? 'rgba(255,255,255,0.12)' : 'transparent', border:'none', borderRadius:6, padding:'5px 8px', color:'rgba(255,255,255,0.6)', cursor:'pointer', display:'flex', alignItems:'center', marginRight:8 }}
+          title="Display settings"
+        >
+          <Ic n="settings" size={15} />
+        </button>
         <div className="nav-avatar">A</div>
       </nav>
 
+      {/* Settings panel */}
+      {settingsOpen && (
+        <div className="settings-panel">
+          <h4>Display <em>settings</em></h4>
+          <div className="tw-row">
+            <span className="lab">Theme</span>
+            <div className="seg">
+              <button className={settings.theme==='light'?'on':''} onClick={() => updateSetting('theme','light')}>Light</button>
+              <button className={settings.theme==='dark'?'on':''} onClick={() => updateSetting('theme','dark')}>Dark</button>
+            </div>
+          </div>
+          <div className="tw-row">
+            <span className="lab">Density</span>
+            <div className="seg">
+              <button className={settings.density==='cosy'?'on':''} onClick={() => updateSetting('density','cosy')}>Cosy</button>
+              <button className={settings.density==='compact'?'on':''} onClick={() => updateSetting('density','compact')}>Compact</button>
+            </div>
+          </div>
+          <div className="tw-row">
+            <span className="lab">Navigation</span>
+            <div className="seg">
+              <button className={settings.nav==='top'?'on':''} onClick={() => updateSetting('nav','top')}>Top</button>
+              <button className={settings.nav==='side'?'on':''} onClick={() => updateSetting('nav','side')}>Side</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Shell */}
       <div className="hub-shell">
-        {!isLanding && hubDef && <HubSidebar hub={hub as keyof typeof HUBS} route={route} />}
-        <div className={`hub-content${isLanding ? ' no-sidebar' : ''}`}>
+        {!isLanding && hubDef && !navTop && <HubSidebar hub={hub as keyof typeof HUBS} route={route} />}
+        {!isLanding && hubDef && navTop && (
+          <div style={{ position:'fixed', top:'var(--nav-h)', left:0, right:0, background:'var(--bg-card)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 24px', height:40, gap:4, zIndex:40, overflowX:'auto' }}>
+            {hubDef.sections.flatMap(g => g.items).map(item => (
+              <button key={item.id} onClick={() => navigate(hub, item.id)}
+                style={{ fontFamily:'var(--font-body)', fontSize:12, padding:'4px 10px', borderRadius:4, border:'none', background: route.section===item.id ? 'var(--navy-deep)' : 'transparent', color: route.section===item.id ? '#fff' : 'var(--fg3)', cursor:'pointer', whiteSpace:'nowrap' }}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className={`hub-content${isLanding || navTop ? ' no-sidebar' : ''}`} style={ navTop ? { paddingTop:40 } : {} }>
           {renderContent()}
         </div>
       </div>
 
-      <div className="stamp-wm">R</div>
+      <div className="stamp-wm"><span className="r">R</span></div>
     </>
   );
 }
