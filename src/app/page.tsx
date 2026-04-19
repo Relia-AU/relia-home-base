@@ -1722,11 +1722,24 @@ export default function App() {
   const [settings, setSettings] = useState<DisplaySettings>(DISPLAY_DEFAULTS);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [userInitial, setUserInitial] = useState('?');
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('relia-display');
     if (saved) { try { setSettings(JSON.parse(saved)); } catch {} }
     setHydrated(true);
+    // Try to get real user from Supabase
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email ?? '';
+      const name = data.user?.user_metadata?.full_name ?? data.user?.user_metadata?.name ?? '';
+      const display = name || email;
+      if (display) {
+        setUserEmail(email);
+        setUserInitial(display.charAt(0).toUpperCase());
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -1804,12 +1817,13 @@ export default function App() {
         <button className="nav-search"><Ic n="search" size={12} />Search<span className="shortcut">⌘K</span></button>
         <button
           onClick={() => setSettingsOpen(o => !o)}
-          style={{ background: settingsOpen ? 'rgba(255,255,255,0.12)' : 'transparent', border:'none', borderRadius:6, padding:'5px 8px', color:'rgba(255,255,255,0.6)', cursor:'pointer', display:'flex', alignItems:'center', marginRight:8 }}
+          style={{ background: settingsOpen ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:6, padding:'6px 12px', color: settingsOpen ? '#fff' : 'rgba(255,255,255,0.75)', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontSize:12, fontFamily:'var(--font-body)', marginRight:8, transition:'all 0.15s' }}
           title="Display settings"
         >
-          <Ic n="settings" size={15} />
+          <Ic n="settings" size={14} />
+          Settings
         </button>
-        <div className="nav-avatar">A</div>
+        <div className="nav-avatar" title={userEmail} style={{ cursor:'default' }}>{userInitial}</div>
       </nav>
 
       {/* Settings panel */}
