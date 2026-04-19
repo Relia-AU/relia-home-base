@@ -238,43 +238,7 @@ const REQS_SEED: Req[] = [
   { ref:'NFR-012', phase:'MVP 3+', type:'non_functional', category:'Compliance', priority:'could_have',  status:'draft',      linear_id:'', developer:'',      platform:'all',     user_story:'', title:'WCAG 2.1 AA accessibility on all web surfaces' },
 ];
 
-const UAT_SEED: UATTest[] = [
-  // ── Cycle 1 — Setup & Mockup to Working (COMPLETED Apr 12-17) ─────────────
-  { id:'u1',  ref:'UAT-001', cycle:'Cycle 1', req_ref:'FR-001', linear_id:'REL-5',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'iOS Speech Framework integrated via speech_to_text package',          title:'iOS Speech Framework integrates and returns transcript' },
-  { id:'u2',  ref:'UAT-002', cycle:'Cycle 1', req_ref:'FR-002', linear_id:'REL-6',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Real-time words appear as user speaks',                               title:'Real-time transcription streams words during recording' },
-  { id:'u3',  ref:'UAT-003', cycle:'Cycle 1', req_ref:'FR-003', linear_id:'REL-8',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'User can tap any word to correct it',                                 title:'Transcript is editable after recording stops' },
-  { id:'u4',  ref:'UAT-004', cycle:'Cycle 1', req_ref:'FR-004', linear_id:'REL-9',   platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Permission dialog shown; denied state handled gracefully',            title:'Mic permission requested on first use; error shown if denied' },
-  { id:'u5',  ref:'UAT-005', cycle:'Cycle 1', req_ref:'FR-005', linear_id:'REL-88',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Native iOS AI used instead of Deepgram — no network needed',          title:'Voice-to-text works using native iOS AI (offline capable)' },
-  { id:'u6',  ref:'UAT-006', cycle:'Cycle 1', req_ref:'FR-006', linear_id:'REL-99',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'GPT-4.1 extracts materials correctly for plumbing job',               title:'AI extracts material list from plumbing job description' },
-  { id:'u7',  ref:'UAT-007', cycle:'Cycle 1', req_ref:'FR-006', linear_id:'REL-99',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Electrical job (downlights) extracted correctly',                      title:'AI extracts material list from electrical job description' },
-  { id:'u8',  ref:'UAT-008', cycle:'Cycle 1', req_ref:'FR-008', linear_id:'REL-78',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Low-confidence items show yellow indicator',                          title:'Low-confidence materials flagged with confidence score indicator' },
-  { id:'u9',  ref:'UAT-009', cycle:'Cycle 1', req_ref:'FR-009', linear_id:'REL-106', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Correction events saved to Supabase for model improvement',           title:'User corrections captured as correction_events in DB' },
-  { id:'u10', ref:'UAT-010', cycle:'Cycle 1', req_ref:'FR-010', linear_id:'REL-105', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Full flow works end-to-end in single session',                        title:'Full flow: voice → transcript → materials → cost → PDF → saved' },
-  { id:'u11', ref:'UAT-011', cycle:'Cycle 1', req_ref:'FR-011', linear_id:'REL-109', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Price field editable inline; saved correctly',                        title:'Unpriced materials can have price entered manually' },
-  { id:'u12', ref:'UAT-012', cycle:'Cycle 1', req_ref:'FR-013', linear_id:'REL-103', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Labour screen appears before cost summary as intended',               title:'Labour capture step appears before Cost Summary screen' },
-  { id:'u13', ref:'UAT-013', cycle:'Cycle 1', req_ref:'FR-014', linear_id:'REL-69',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'GST added correctly; non-GST option available in settings',           title:'GST calculated correctly for GST-registered tradie' },
-  { id:'u14', ref:'UAT-014', cycle:'Cycle 1', req_ref:'FR-014', linear_id:'REL-69',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'No GST line shown when non-registered selected',                      title:'GST not applied when tradie marks themselves as non-registered' },
-  { id:'u15', ref:'UAT-015', cycle:'Cycle 1', req_ref:'FR-015', linear_id:'REL-67',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF labelled correctly based on selection',                           title:'Document type selector switches between Quote and Estimate on PDF' },
-  { id:'u16', ref:'UAT-016', cycle:'Cycle 1', req_ref:'FR-016', linear_id:'REL-114', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF matches preview layout; all line items present',                  title:'PDF generates with all line items, labour, GST, and total' },
-  { id:'u17', ref:'UAT-017', cycle:'Cycle 1', req_ref:'FR-017', linear_id:'REL-65',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Estimates persist after app restart; loaded from Supabase',           title:'Home screen lists all saved estimates from Supabase' },
-  { id:'u18', ref:'UAT-018', cycle:'Cycle 1', req_ref:'FR-018', linear_id:'REL-107', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'PDF preview opens from home screen estimate row',                     title:'Tapping a saved estimate opens PDF preview mode' },
-  { id:'u19', ref:'UAT-019', cycle:'Cycle 1', req_ref:'FR-019', linear_id:'REL-81',  platform:'ios', version:'v0.8', tester:'nhung', date:'17 Apr', status:'passed',  notes:'Business name, ABN, trade, contact all saved correctly',             title:'Tradie can complete onboarding: trade + business details' },
-  { id:'u20', ref:'UAT-020', cycle:'Cycle 1', req_ref:'FR-021', linear_id:'REL-108', platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Trades updated in Settings; reflected in new estimates',              title:'Tradie can edit trade types from Settings screen' },
-  { id:'u21', ref:'UAT-021', cycle:'Cycle 1', req_ref:'FR-022', linear_id:'REL-63',  platform:'ios', version:'v0.8', tester:'jon',   date:'17 Apr', status:'passed',  notes:'Apple Sign-In flow completes; Supabase session created',              title:'Apple Sign-In authenticates and creates Supabase session' },
-  // ── Cycle 2 — App Store Submission (ACTIVE Apr 19 - May 1) ──────────────
-  { id:'u22', ref:'UAT-022', cycle:'Cycle 2', req_ref:'FR-045', linear_id:'REL-119', platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Waitlist form and hero copy to be verified',                          title:'Landing page hero, waitlist form, and CTA render correctly' },
-  { id:'u23', ref:'UAT-023', cycle:'Cycle 2', req_ref:'FR-044', linear_id:'REL-44',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Submission should appear in Supabase waitlist table',                 title:'Waitlist form submission saves email to Supabase' },
-  { id:'u24', ref:'UAT-024', cycle:'Cycle 2', req_ref:'FR-023', linear_id:'REL-86',  platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Must be available before App Store submission',                       title:'Account deletion flow available in Settings and completes successfully' },
-  { id:'u25', ref:'UAT-025', cycle:'Cycle 2', req_ref:'FR-041', linear_id:'REL-77',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'Legal team to approve copy before going live',                        title:'Privacy policy page is live and legally reviewed' },
-  { id:'u26', ref:'UAT-026', cycle:'Cycle 2', req_ref:'FR-042', linear_id:'REL-34',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'URL must match what is submitted in App Store listing',               title:'Privacy policy URL accessible at reliaplatform.io/privacy' },
-  { id:'u27', ref:'UAT-027', cycle:'Cycle 2', req_ref:'FR-043', linear_id:'REL-35',  platform:'web', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'URL must match what is submitted in App Store listing',               title:'Terms of service URL accessible at reliaplatform.io/terms' },
-  { id:'u28', ref:'UAT-028', cycle:'Cycle 2', req_ref:'FR-027', linear_id:'REL-115', platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Share token generated; web page renders quote details',               title:'Share token generated; customer web page renders quote correctly' },
-  { id:'u29', ref:'UAT-029', cycle:'Cycle 2', req_ref:'FR-028', linear_id:'REL-116', platform:'web', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Accept triggers tradie email notification',                           title:'Customer can accept or decline quote on web page; tradie notified' },
-  { id:'u30', ref:'UAT-030', cycle:'Cycle 2', req_ref:'FR-030', linear_id:'REL-113', platform:'ios', version:'v0.9', tester:'jon',   date:'',       status:'draft',   notes:'Location captured silently during estimation flow',                   title:'Location captured and stored with each estimate' },
-  { id:'u31', ref:'UAT-031', cycle:'Cycle 2', req_ref:'FR-034', linear_id:'REL-50',  platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'draft',   notes:'PostHog events firing for key actions',                               title:'PostHog analytics events fire for voice start, quote sent, accepted' },
-  { id:'u32', ref:'UAT-032', cycle:'Cycle 2', req_ref:'FR-037', linear_id:'REL-31',  platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'ready',   notes:'D-U-N-S number required for company enrollment',                     title:'Apple Developer account enrolled as company with D-U-N-S' },
-  { id:'u33', ref:'UAT-033', cycle:'Cycle 2', req_ref:'NFR-006', linear_id:'REL-41', platform:'ios', version:'v0.9', tester:'nhung', date:'',       status:'draft',   notes:'Check all App Review guidelines before submission',                   title:'App Review compliance checklist completed — no violations' },
-];
+// UAT_SEED removed — data now lives in uat_tests table (see migration 20260419040000_uat_seed.sql)
 
 // ── Pill component ────────────────────────────────────────────────────────
 const STATUS_MAP: Record<string,string> = { todo:'p-todo', prog:'p-prog', review:'p-review', done:'p-done', block:'p-block', draft:'p-draft', active:'p-active', prospect:'p-prospect', passed:'p-passed', failed:'p-failed', in_progress:'p-prog', must_have:'p-must', should_have:'p-should', could_have:'p-could', wont_have:'p-wont', implemented:'p-done', approved:'p-review', closed_won:'p-done', trial:'p-review', qualified:'p-prog' };
@@ -2462,7 +2426,7 @@ function RequirementsView() {
 interface UATAttachment { id: string; file_name: string; storage_path: string; url: string; linear_issue_id: string; caption: string; }
 
 function UATTestRow({ t, upd, linearIssues }: {
-  t: typeof UAT_SEED[0];
+  t: UATTest;
   upd: (id: string, f: string, v: string) => void;
   linearIssues: LinearIssue[];
 }) {
@@ -2526,36 +2490,79 @@ function UATTestRow({ t, upd, linearIssues }: {
     setAttachments(as => as.filter(a => a.id !== id));
   };
 
+  const platformIcon: Record<string,string> = { ios:'📱', android:'🤖', web:'🌐', all:'·' };
+  const cycleColors: Record<string,{bg:string,fg:string}> = {
+    'Cycle 1':{bg:'var(--bottle-soft)',fg:'var(--bottle-deep)'},
+    'Cycle 2':{bg:'var(--blue-soft)',fg:'var(--blue-hover)'},
+    'Cycle 3':{bg:'var(--butter-soft)',fg:'var(--butter-deep)'},
+  };
+  const cc = t.cycle ? (cycleColors[t.cycle] ?? {bg:'var(--slate)',fg:'var(--fg3)'}) : {bg:'var(--slate)',fg:'var(--fg3)'};
+  const statusPill: Record<string,{bg:string,fg:string,label:string}> = {
+    passed:      {bg:'var(--bottle-soft)',fg:'var(--bottle-deep)',label:'PASS'},
+    failed:      {bg:'var(--red-soft)',fg:'var(--red)',label:'FAIL'},
+    in_progress: {bg:'var(--butter-soft)',fg:'var(--butter-deep)',label:'IN PROG'},
+    draft:       {bg:'var(--slate)',fg:'var(--fg3)',label:'DRAFT'},
+    ready:       {bg:'var(--blue-soft)',fg:'var(--blue-hover)',label:'READY'},
+    blocked:     {bg:'var(--red-soft)',fg:'var(--red)',label:'BLOCKED'},
+  };
+  const sp = statusPill[t.status] ?? statusPill['draft']!;
+  const initials = t.tester ? t.tester.slice(0,2).toUpperCase() : '?';
+  const testerColors = ['var(--navy)','var(--bottle-deep)','var(--red)','var(--butter-deep)'];
+  const testerColor = testerColors[t.tester.charCodeAt(0) % testerColors.length];
+
   return (
     <>
       <tr style={{ cursor:'pointer' }} onClick={handleExpand}>
-        <td><span className="mono">{t.ref}</span></td>
-        <td><span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.06em', padding:'2px 6px', borderRadius:3, background: t.cycle==='Cycle 1'?'var(--bottle-soft)':t.cycle==='Cycle 2'?'var(--blue-soft)':'var(--slate)', color: t.cycle==='Cycle 1'?'var(--bottle-deep)':t.cycle==='Cycle 2'?'var(--blue-hover)':'var(--fg3)', whiteSpace:'nowrap' }}>{t.cycle ?? '—'}</span></td>
+        <td><span className="mono" style={{ fontSize:11 }}>{t.ref}</span></td>
+        <td>
+          <span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.06em', padding:'3px 7px', borderRadius:3, background:cc.bg, color:cc.fg, whiteSpace:'nowrap', fontWeight:600 }}>
+            {t.cycle ?? '—'}
+          </span>
+        </td>
         <td onClick={e => e.stopPropagation()}>
-          <select value={t.platform ?? 'all'} onChange={e => upd(t.id,'platform',e.target.value)}
-            style={{ fontFamily:'var(--font-mono)', fontSize:10, letterSpacing:'0.06em', background:'transparent', border:'none', cursor:'pointer', padding:0,
-              color: t.platform==='ios'?'var(--blue-hover)':t.platform==='android'?'var(--bottle-deep)':t.platform==='web'?'var(--butter-deep)':'var(--fg3)' }}>
-            <option value="all">All</option>
-            <option value="ios">iPhone</option>
-            <option value="android">Android</option>
-            <option value="web">Web</option>
-          </select>
+          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+            <span style={{ fontSize:13 }}>{platformIcon[t.platform ?? 'all']}</span>
+            <select value={t.platform ?? 'all'} onChange={e => upd(t.id,'platform',e.target.value)}
+              style={{ fontFamily:'var(--font-mono)', fontSize:10, letterSpacing:'0.06em', background:'transparent', border:'none', cursor:'pointer', padding:0, color:'var(--fg2)' }}>
+              <option value="all">All</option>
+              <option value="ios">iPhone</option>
+              <option value="android">Android</option>
+              <option value="web">Web App</option>
+            </select>
+          </div>
         </td>
         <td onClick={e => e.stopPropagation()}><EF value={t.version ?? ''} onSave={v => upd(t.id,'version',v)} /></td>
-        <td className="fw600"><EF value={t.title} onSave={v => upd(t.id,'title',v)} /></td>
-        <td>{t.linear_id ? <span className="mono" style={{ color:'var(--navy)' }}>{t.linear_id}</span> : <span style={{ color:'var(--fg3)', fontSize:12 }}>—</span>}</td>
-        <td><EF value={t.tester} onSave={v => upd(t.id,'tester',v)} /></td>
-        <td onClick={e => e.stopPropagation()}>
-          <select value={t.status} onChange={e => upd(t.id,'status',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:11, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0 }}>
-            {['draft','ready','in_progress','passed','failed','blocked'].map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
-          </select>
+        <td style={{ maxWidth:360 }}>
+          <div style={{ fontWeight:600, fontSize:13 }}><EF value={t.title} onSave={v => upd(t.id,'title',v)} /></div>
+          {t.notes && <div style={{ fontSize:11, color:'var(--fg3)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:340 }}>{t.notes}</div>}
         </td>
-        <td><span style={{ fontSize:11, color:'var(--fg3)' }}>{expanded ? '▲' : '▼'} {attachments.length > 0 ? `${attachments.length} img` : 'imgs'}</span></td>
+        <td onClick={e => e.stopPropagation()}>
+          <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+            <div style={{ width:26, height:26, borderRadius:'50%', background:testerColor, color:'#fff', fontSize:10, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{initials}</div>
+            <EF value={t.tester} onSave={v => upd(t.id,'tester',v)} />
+          </div>
+        </td>
+        <td onClick={e => e.stopPropagation()}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:9, fontWeight:700, letterSpacing:'0.08em', padding:'3px 8px', borderRadius:3, background:sp.bg, color:sp.fg }}>{sp.label}</span>
+            <select value={t.status} onChange={e => upd(t.id,'status',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:10, background:'transparent', border:'none', color:'var(--fg3)', cursor:'pointer', padding:0 }}>
+              {['draft','ready','in_progress','passed','failed','blocked'].map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+            </select>
+          </div>
+        </td>
+        <td><span style={{ fontSize:11, color:'var(--fg3)' }}>{expanded ? '▲' : '▼'}{attachments.length > 0 ? ` ${attachments.length}` : ''}</span></td>
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={7} style={{ padding:0, background:'var(--slate-soft)', borderBottom:'1px solid var(--border)' }}>
+          <td colSpan={8} style={{ padding:0, background:'var(--slate-soft)', borderBottom:'1px solid var(--border)' }}>
             <div style={{ padding:'16px 20px' }}>
+              {/* Notes */}
+              {t.notes && (
+                <div style={{ marginBottom:16, padding:'10px 14px', background:'var(--bg-card)', borderRadius:'var(--radius-md)', border:'1px solid var(--border)', display:'flex', gap:12, alignItems:'flex-start' }}>
+                  <span style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--fg3)', paddingTop:2, flexShrink:0 }}>Notes</span>
+                  <span style={{ fontSize:13, color:'var(--fg1)', lineHeight:1.5 }}>{t.notes}</span>
+                </div>
+              )}
               {/* Upload area */}
               <div style={{ marginBottom:16 }}>
                 <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:8 }}>Upload image</div>
@@ -2611,24 +2618,45 @@ function UATTestRow({ t, upd, linearIssues }: {
 function UATView() {
   const { tests, setTests } = useAppData();
   const [adding, setAdding] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title:'', req_ref:'', tester:'', linear_id:'', notes:'', platform:'all', version:'' });
   const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
-  const upd = (id: string, f: string, v: string) => setTests(ts => ts.map(t => t.id === id ? {...t, [f]: v} : t));
+  const supabase = createClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rowToTest = (r: any): UATTest => ({
+    id: r.id, ref: r.ref, title: r.title ?? '', notes: r.notes ?? '',
+    status: r.status ?? 'draft', cycle: r.cycle ?? undefined,
+    tester: r.tester ?? '', req_ref: r.req_ref ?? '',
+    linear_id: r.linear_id ?? '', platform: r.platform ?? 'all',
+    version: r.version ?? '', date: r.date ?? '',
+  });
+
+  const loadTests = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any).from('uat_tests').select('*').order('ref', { ascending: true });
+    if (data) setTests(data.map(rowToTest));
+    setLoading(false);
+  };
+
+  const upd = async (id: string, f: string, v: string) => {
+    setTests(ts => ts.map(t => t.id === id ? {...t, [f]: v} : t));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('uat_tests').update({ [f]: v, updated_at: new Date().toISOString() }).eq('id', id);
+  };
 
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_LINEAR_API_KEY;
-    if (!key) return;
-    fetch('https://api.linear.app/graphql', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': key },
-    });
-    // Load issues from Supabase cache
+    loadTests();
     loadLinearFromSupabase().then(stored => setLinearIssues(stored.map(s => ({ id: s.linear_id, identifier: s.identifier, title: s.title, state: { name: s.status, type: s.status }, priority: s.priority, assignee: null, team: null, labels: { nodes: [] }, url: s.linear_url }))));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addTest = () => {
+  const addTest = async () => {
     const nextRef = `UAT-${String(tests.length + 1).padStart(3,'0')}`;
-    setTests(ts => [...ts, { id: String(Date.now()), ref: nextRef, status: 'draft', date: new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short'}), ...form }]);
+    const payload = { ref: nextRef, status: 'draft', date: new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short'}), ...form };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any).from('uat_tests').insert(payload).select().single();
+    if (data) setTests(ts => [...ts, rowToTest(data)]);
     setForm({ title:'', req_ref:'', tester:'', linear_id:'', notes:'', platform:'all', version:'' });
     setAdding(false);
   };
@@ -2639,17 +2667,47 @@ function UATView() {
   const summary = { passed: filteredTests.filter(t=>t.status==='passed').length, failed: filteredTests.filter(t=>t.status==='failed').length, in_progress: filteredTests.filter(t=>t.status==='in_progress').length, draft: filteredTests.filter(t=>t.status==='draft'||t.status==='ready').length };
 
   return (
-    <div className="hub-page">
-      <div className="breadcrumb"><span>Dev</span><span className="sep">·</span><b>UAT</b></div>
-      <div className="section-head">
-        <h2>User acceptance <em>testing</em></h2>
-        <button className="btn btn-primary btn-sm" onClick={() => setAdding(a => !a)}><Ic n="plus" />{adding ? 'Cancel' : 'Add test'}</button>
+    <div className="hub-page-wide">
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:32 }}>
+        <div>
+          <div className="breadcrumb" style={{ marginBottom:8 }}><span>Dev</span><span className="sep">·</span><b>UAT</b></div>
+          <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(32px,3.5vw,48px)', lineHeight:1.05, letterSpacing:'-0.025em', color:'var(--fg1)', margin:0 }}>User acceptance<br /><em style={{ fontStyle:'italic', color:'var(--red)' }}>testing</em></h2>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={() => setAdding(a => !a)} style={{ marginTop:8 }}><Ic n="plus" />{adding ? 'Cancel' : 'Add test'}</button>
       </div>
-      <div className="stat-row" style={{ marginBottom:24 }}>
-        <div className="stat-card"><div className="stat-label">Passed</div><div className="stat-value" style={{ color:'var(--bottle)' }}>{summary.passed}</div></div>
-        <div className="stat-card"><div className="stat-label">Failed</div><div className="stat-value" style={{ color:'var(--red)' }}>{summary.failed}</div></div>
-        <div className="stat-card"><div className="stat-label">In progress</div><div className="stat-value" style={{ color:'var(--butter-deep)' }}>{summary.in_progress}</div></div>
-        <div className="stat-card"><div className="stat-label">Draft</div><div className="stat-value" style={{ color:'var(--fg3)' }}>{summary.draft}</div></div>
+      <div className="stat-row" style={{ marginBottom:32 }}>
+        <div className="stat-card" style={{ position:'relative' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div className="stat-label">Passed</div>
+            <span style={{ width:28, height:28, borderRadius:'50%', background:'var(--bottle-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>✓</span>
+          </div>
+          <div className="stat-value" style={{ color:'var(--bottle)', marginBottom:6 }}>{summary.passed}</div>
+          <div className="stat-delta up">{summary.passed > 0 ? 'All verified green' : 'No passing tests yet'}</div>
+        </div>
+        <div className="stat-card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div className="stat-label">Failed</div>
+            <span style={{ width:28, height:28, borderRadius:'50%', background:'var(--red-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>✕</span>
+          </div>
+          <div className="stat-value" style={{ color:'var(--red)', marginBottom:6 }}>{summary.failed}</div>
+          <div className="stat-delta dn">{summary.failed > 0 ? 'High priority fixes required' : 'No failures — nice'}</div>
+        </div>
+        <div className="stat-card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div className="stat-label">In progress</div>
+            <span style={{ width:28, height:28, borderRadius:'50%', background:'var(--butter-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>↻</span>
+          </div>
+          <div className="stat-value" style={{ color:'var(--butter-deep)', marginBottom:6 }}>{summary.in_progress}</div>
+          <div className="stat-delta">Currently under review</div>
+        </div>
+        <div className="stat-card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div className="stat-label">Draft / Ready</div>
+            <span style={{ width:28, height:28, borderRadius:'50%', background:'var(--slate)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>◇</span>
+          </div>
+          <div className="stat-value" style={{ color:'var(--fg3)', marginBottom:6 }}>{summary.draft}</div>
+          <div className="stat-delta">Awaiting test run</div>
+        </div>
       </div>
       {adding && (
         <div className="uat-form">
@@ -2678,23 +2736,34 @@ function UATView() {
           </div>
         </div>
       )}
-      {/* Cycle filter */}
-      {uatCycles.length > 0 && (
-        <div className="filter-strip">
-          <button className={`filter-chip${cycleFilter==='all'?' on':''}`} onClick={()=>setCycleFilter('all')}>All cycles ({tests.length})</button>
-          {uatCycles.map(c => (
-            <button key={c} className={`filter-chip${cycleFilter===c?' on':''}`} onClick={()=>setCycleFilter(c)}>
-              {c} <span style={{marginLeft:4,opacity:0.7}}>({tests.filter(t=>t.cycle===c).length})</span>
+      {/* Cycle tab bar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid var(--border)', marginBottom:0 }}>
+        <div style={{ display:'flex', gap:0 }}>
+          {[{label:'All Cycles', val:'all', count:tests.length}, ...uatCycles.map(c=>({label:c, val:c, count:tests.filter(t=>t.cycle===c).length}))].map(tab => (
+            <button key={tab.val} onClick={()=>setCycleFilter(tab.val)} style={{
+              background:'none', border:'none', cursor:'pointer', padding:'10px 18px', fontSize:13,
+              color: cycleFilter===tab.val ? 'var(--fg1)' : 'var(--fg3)',
+              fontWeight: cycleFilter===tab.val ? 600 : 400,
+              borderBottom: cycleFilter===tab.val ? '2px solid var(--navy)' : '2px solid transparent',
+              marginBottom:-1, transition:'color 0.15s',
+            }}>
+              {tab.label} <span style={{ opacity:0.5, fontSize:11 }}>{tab.count}</span>
             </button>
           ))}
         </div>
-      )}
+        <div style={{ display:'flex', gap:8, paddingBottom:8 }}>
+          <span style={{ fontFamily:'var(--font-mono)', fontSize:10, letterSpacing:'0.08em', color:'var(--fg3)', padding:'4px 10px', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', display:'flex', alignItems:'center', gap:4 }}>
+            ⊟ FILTER
+          </span>
+        </div>
+      </div>
 
       <div className="data-card">
-        {filteredTests.length === 0 && !adding && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>{tests.length === 0 ? 'No UAT tests yet. Add your first above.' : 'No tests in this cycle.'}</div>}
-        {filteredTests.length > 0 && (
+        {loading && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>Loading…</div>}
+        {!loading && filteredTests.length === 0 && !adding && <div style={{ padding:'32px 20px', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>{tests.length === 0 ? 'No UAT tests yet. Add your first above.' : 'No tests in this cycle.'}</div>}
+        {!loading && filteredTests.length > 0 && (
           <table className="data-table">
-            <thead><tr><th>Ref</th><th>Cycle</th><th>Platform</th><th>Version</th><th>Test</th><th>Linear</th><th>Tester</th><th>Status</th><th>Images</th></tr></thead>
+            <thead><tr><th>REF</th><th>CYCLE</th><th>PLATFORM</th><th>VERSION</th><th>TEST</th><th>TESTER</th><th>STATUS</th><th></th></tr></thead>
             <tbody>
               {filteredTests.map(t => <UATTestRow key={t.id} t={t} upd={upd} linearIssues={linearIssues} />)}
             </tbody>
@@ -2752,7 +2821,7 @@ export default function App() {
   // Shared data state — lifted so all views can cross-reference
   const [sharedStories, setSharedStories] = useState<UserStory[]>(STORIES_SEED);
   const [sharedReqs, setSharedReqs] = useState<Req[]>(REQS_SEED as Req[]);
-  const [sharedTests, setSharedTests] = useState<UATTest[]>(UAT_SEED as UATTest[]);
+  const [sharedTests, setSharedTests] = useState<UATTest[]>([]);
   const [focusId, setFocusId] = useState('');
   const appDataValue = useMemo(() => ({ stories: sharedStories, reqs: sharedReqs, tests: sharedTests, setStories: setSharedStories, setReqs: setSharedReqs, setTests: setSharedTests, focusId, setFocusId }), [sharedStories, sharedReqs, sharedTests, focusId]);
 

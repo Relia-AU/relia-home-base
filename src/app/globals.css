@@ -316,6 +316,10 @@ button { font-family: var(--font-body); cursor: pointer; }
   padding: 48px 56px 80px;
   min-height: calc(100vh - var(--nav-h));
 }
+.hub-page-wide {
+  padding: 40px 48px 80px;
+  min-height: calc(100vh - var(--nav-h));
+}
 
 /* ── Breadcrumb ──────────────────────────────────────────────────────────── */
 .breadcrumb {
@@ -894,6 +898,7 @@ body.theme-dark .seg button.on { background: var(--slate-deep); }
   .hub-sidebar { display: none; }
   .hub-content { margin-left: 0; }
   .hub-page { padding: 32px 24px 60px; }
+  .hub-page-wide { padding: 32px 24px 60px; }
   .landing-page { padding: 32px 24px 60px; }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
   .section-cards { grid-template-columns: 1fr; }
