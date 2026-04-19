@@ -1732,8 +1732,11 @@ function RequirementsView() {
     fetch('https://api.linear.app/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': key },
-      body: JSON.stringify({ query: `query { issues(first: 100) { nodes { id identifier title state { name type } } } }` }),
-    }).then(r => r.json()).then((d: { data?: { issues?: { nodes: LinearIssue[] } } }) => setLinearIssues(d.data?.issues?.nodes ?? []));
+      body: JSON.stringify({ query: `query { issues(first: 250, orderBy: createdAt) { nodes { id identifier title state { name type } } } }` }),
+    }).then(r => r.json()).then((d: { data?: { issues?: { nodes: LinearIssue[] } } }) => {
+      const sorted = [...(d.data?.issues?.nodes ?? [])].sort((a,b) => parseInt(b.identifier.replace('REL-','')) - parseInt(a.identifier.replace('REL-','')));
+      setLinearIssues(sorted);
+    });
   }, []);
 
   const shown = filter === 'all' ? reqs : reqs.filter(r => r.type === filter);
@@ -2022,8 +2025,16 @@ function UATView() {
     fetch('https://api.linear.app/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': key },
-      body: JSON.stringify({ query: `query { issues(first: 100) { nodes { id identifier title state { name type } priority team { name } labels { nodes { name color } } url assignee { name displayName } } } }` }),
-    }).then(r => r.json()).then((d: { data?: { issues?: { nodes: LinearIssue[] } } }) => setLinearIssues(d.data?.issues?.nodes ?? []));
+      body: JSON.stringify({ query: `query { issues(first: 250, orderBy: createdAt) { nodes { id identifier title state { name type } priority team { name } labels { nodes { name color } } url assignee { name displayName } } } }` }),
+    }).then(r => r.json()).then((d: { data?: { issues?: { nodes: LinearIssue[] } } }) => {
+      // Sort by identifier number descending so newest appear first in search
+      const sorted = [...(d.data?.issues?.nodes ?? [])].sort((a, b) => {
+        const na = parseInt(a.identifier.replace('REL-',''));
+        const nb = parseInt(b.identifier.replace('REL-',''));
+        return nb - na;
+      });
+      setLinearIssues(sorted);
+    });
   }, []);
 
   const addTest = () => {
