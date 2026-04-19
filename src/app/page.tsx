@@ -2633,8 +2633,11 @@ function UATView() {
   });
 
   const loadTests = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('[UAT] auth uid:', user?.id ?? 'NOT AUTHENTICATED');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any).from('uat_tests').select('*').order('ref', { ascending: true });
+    console.log('[UAT] rows:', data?.length ?? 'null', 'error:', error?.message ?? 'none');
     if (error) console.error('[UAT] loadTests error:', error);
     if (data) setTests(data.map(rowToTest));
     setLoading(false);
