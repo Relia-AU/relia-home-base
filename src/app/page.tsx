@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, createContext, useContext, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 // ── Route helpers ─────────────────────────────────────────────────────────
@@ -1589,6 +1589,87 @@ const STORIES_SEED = [
 ];
 
 type UserStory = typeof STORIES_SEED[0];
+type Req = { ref: string; type: string; category: string; title: string; priority: string; status: string; linear_id: string; developer?: string; platform?: string; user_story?: string };
+type UATTest = { id: string; ref: string; req_ref: string; title: string; status: string; tester: string; date: string; linear_id: string; notes: string; platform?: string; version?: string };
+
+// ── Shared data context ────────────────────────────────────────────────────
+interface AppDataCtx {
+  stories: UserStory[];
+  reqs: Req[];
+  tests: UATTest[];
+  setStories: React.Dispatch<React.SetStateAction<UserStory[]>>;
+  setReqs: React.Dispatch<React.SetStateAction<Req[]>>;
+  setTests: React.Dispatch<React.SetStateAction<UATTest[]>>;
+  focusId: string;
+  setFocusId: (id: string) => void;
+}
+const AppData = createContext<AppDataCtx>({
+  stories: STORIES_SEED, reqs: [], tests: [],
+  setStories: () => {}, setReqs: () => {}, setTests: () => {},
+  focusId: '', setFocusId: () => {},
+});
+const useAppData = () => useContext(AppData);
+
+// ── LinkedPanel — cross-reference display ─────────────────────────────────
+function LinkedPanel({ storyRef, reqRef, testId, linearId }: { storyRef?: string; reqRef?: string; testId?: string; linearId?: string }) {
+  const { stories, reqs, tests } = useAppData();
+
+  const linkedStory  = storyRef ? stories.find(s => s.ref === storyRef) : undefined;
+  const linkedReqs   = reqRef   ? reqs.filter(r => r.ref === reqRef)
+                      : storyRef ? reqs.filter(r => r.user_story === storyRef) : [];
+  const linkedTests  = reqRef   ? tests.filter(t => t.req_ref === reqRef)
+                      : storyRef ? tests.filter(t => { const r = reqs.find(r2 => r2.ref === t.req_ref); return r?.user_story === storyRef; }) : [];
+  const linkedLinear = linearId ? [linearId] : [];
+
+  const hasLinks = linkedStory || linkedReqs.length || linkedTests.length || linkedLinear.length;
+  if (!hasLinks) return null;
+
+  const statusBg: Record<string,string> = { done:'var(--bottle-soft)', in_progress:'var(--butter-soft)', passed:'var(--bottle-soft)', failed:'var(--red-soft)', draft:'var(--slate)', todo:'var(--slate)', implemented:'var(--bottle-soft)', approved:'var(--blue-soft)' };
+  const statusFg: Record<string,string> = { done:'var(--bottle-deep)', in_progress:'var(--butter-deep)', passed:'var(--bottle-deep)', failed:'var(--red-deep)', draft:'var(--fg3)', todo:'var(--fg3)', implemented:'var(--bottle-deep)', approved:'var(--blue-hover)' };
+
+  return (
+    <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid var(--border)' }}>
+      <div style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--fg3)', marginBottom:10 }}>Linked to</div>
+      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+
+        {linkedStory && (
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.1em', textTransform:'uppercase', padding:'2px 6px', borderRadius:2, background:'var(--navy)', color:'#fff', flexShrink:0, width:68, textAlign:'center' }}>Story</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--navy)', fontWeight:600, flexShrink:0 }}>{linkedStory.ref}</span>
+            <span style={{ fontSize:12, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>I want to {linkedStory.i_want_to}</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:9, padding:'2px 6px', borderRadius:3, background:statusBg[linkedStory.status]??'var(--slate)', color:statusFg[linkedStory.status]??'var(--fg3)', flexShrink:0 }}>{linkedStory.status.replace('_',' ')}</span>
+          </div>
+        )}
+
+        {linkedReqs.map(r => (
+          <div key={r.ref} style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.1em', textTransform:'uppercase', padding:'2px 6px', borderRadius:2, background:'var(--blue-soft)', color:'var(--blue-hover)', flexShrink:0, width:68, textAlign:'center' }}>Req</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--navy)', fontWeight:600, flexShrink:0 }}>{r.ref}</span>
+            <span style={{ fontSize:12, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{r.title}</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:9, padding:'2px 6px', borderRadius:3, background:statusBg[r.status]??'var(--slate)', color:statusFg[r.status]??'var(--fg3)', flexShrink:0 }}>{r.status}</span>
+          </div>
+        ))}
+
+        {linkedTests.map(t => (
+          <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.1em', textTransform:'uppercase', padding:'2px 6px', borderRadius:2, background:'var(--butter-soft)', color:'var(--butter-deep)', flexShrink:0, width:68, textAlign:'center' }}>UAT</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--navy)', fontWeight:600, flexShrink:0 }}>{t.ref}</span>
+            <span style={{ fontSize:12, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{t.title}</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:9, padding:'2px 6px', borderRadius:3, background:statusBg[t.status]??'var(--slate)', color:statusFg[t.status]??'var(--fg3)', flexShrink:0 }}>{t.status.replace('_',' ')}</span>
+          </div>
+        ))}
+
+        {linkedLinear.map(id => (
+          <div key={id} style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:8, letterSpacing:'0.1em', textTransform:'uppercase', padding:'2px 6px', borderRadius:2, background:'var(--blue-soft)', color:'var(--blue-hover)', flexShrink:0, width:68, textAlign:'center' }}>Linear</span>
+            <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--navy)', fontWeight:600 }}>{id}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const PERSONAS   = ['tradie','end_customer','relia_team','admin'] as const;
 const PLATFORMS  = ['ios','android','web','backend','all'] as const;
 const STORY_STATUSES = ['draft','ready','in_progress','done','deferred'] as const;
@@ -1597,7 +1678,7 @@ const PRIORITY_COLORS = ['var(--fg3)','var(--red)','var(--butter-deep)','var(--n
 const LINEAR_TEAM_ID = '7b65c41c-554e-4a8f-9aa2-27e8b55da254';
 
 function UserStoriesView() {
-  const [stories, setStories] = useState<UserStory[]>(STORIES_SEED);
+  const { stories, setStories } = useAppData();
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState<string|null>(null);
   const [filterPersona, setFilterPersona] = useState('all');
@@ -1765,17 +1846,7 @@ function UserStoriesView() {
                   <div>
                     <div className="mono" style={{marginBottom:6}}>Acceptance criteria</div>
                     <EF value={s.acceptance_criteria||''} onSave={v=>upd(s.id,'acceptance_criteria',v)} multi />
-                    {(Array.isArray(s.linear_ids)?s.linear_ids:[]).length > 0 && (
-                      <div style={{marginTop:12}}>
-                        <div className="mono" style={{marginBottom:6}}>Linked Linear issues</div>
-                        <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                          {(Array.isArray(s.linear_ids)?s.linear_ids:[]).map(id=>{
-                            const issue = linearIssues.find(i=>i.identifier===id);
-                            return <a key={id} href={issue?.url??'#'} target="_blank" rel="noopener noreferrer" style={{fontFamily:'var(--font-mono)',fontSize:10,padding:'3px 7px',borderRadius:3,background:'var(--blue-soft)',color:'var(--blue-hover)',textDecoration:'none'}} title={issue?.title}>{id} {issue ? `— ${issue.title.slice(0,40)}…` : ''}</a>;
-                          })}
-                        </div>
-                      </div>
-                    )}
+                    <LinkedPanel storyRef={s.ref} />
                   </div>
                   {/* Right: controls */}
                   <div style={{display:'flex',flexDirection:'column',gap:10}}>
@@ -1829,9 +1900,10 @@ function UserStoriesView() {
 }
 
 function RequirementsView() {
-  const [reqs, setReqs] = useState(REQS_SEED);
+  const { reqs, setReqs } = useAppData();
   const [filter, setFilter] = useState<'all'|'functional'|'non_functional'>('all');
   const [adding, setAdding] = useState(false);
+  const [expanded, setExpanded] = useState<string|null>(null);
   const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
   const [form, setForm] = useState({ type:'functional', category:'', title:'', description:'', priority:'must_have', linear_id:'' });
 
@@ -1922,10 +1994,11 @@ function RequirementsView() {
 
       <div className="data-card">
         <table className="data-table">
-          <thead><tr><th>Ref</th><th>User story</th><th>Category</th><th>Title</th><th>Platform</th><th>Developer</th><th>Priority</th><th>Status</th><th>Linear</th></tr></thead>
+          <thead><tr><th>Ref</th><th>User story</th><th>Category</th><th>Title</th><th>Platform</th><th>Developer</th><th>Priority</th><th>Status</th><th>Linear</th><th></th></tr></thead>
           <tbody>
             {shown.map(r => (
-              <tr key={r.ref}>
+              <>
+              <tr key={r.ref} style={{ cursor:'pointer' }} onClick={() => setExpanded(e => e===r.ref ? null : r.ref)}>
                 <td><span className="mono">{r.ref}</span></td>
                 <td>
                   <select value={(r as { user_story?: string }).user_story ?? ''} onChange={e => upd(r.ref,'user_story',e.target.value)} style={{ fontFamily:'var(--font-mono)', fontSize:10, background:'transparent', border:'none', color:'var(--navy)', cursor:'pointer', padding:0 }}>
@@ -1963,7 +2036,18 @@ function RequirementsView() {
                     {r.linear_id && !linearIssues.find(i => i.identifier === r.linear_id) && <option value={r.linear_id}>{r.linear_id}</option>}
                   </select>
                 </td>
+                <td style={{ color:'var(--fg3)', fontSize:12 }}>{expanded===r.ref ? '▲' : '▼'}</td>
               </tr>
+              {expanded===r.ref && (
+                <tr key={`${r.ref}-linked`}>
+                  <td colSpan={10} style={{ padding:0 }}>
+                    <div style={{ padding:'14px 20px', background:'var(--slate-soft)', borderBottom:'1px solid var(--border)' }}>
+                      <LinkedPanel storyRef={(r as Req).user_story} reqRef={r.ref} linearId={r.linear_id || undefined} />
+                    </div>
+                  </td>
+                </tr>
+              )}
+              </>
             ))}
           </tbody>
         </table>
@@ -2110,6 +2194,8 @@ function UATTestRow({ t, upd, linearIssues }: {
                   </div>
                 )
               }
+              {/* Cross-references */}
+              <LinkedPanel reqRef={t.req_ref || undefined} linearId={t.linear_id || undefined} />
             </div>
           </td>
         </tr>
@@ -2119,7 +2205,7 @@ function UATTestRow({ t, upd, linearIssues }: {
 }
 
 function UATView() {
-  const [tests, setTests] = useState(UAT_SEED);
+  const { tests, setTests } = useAppData();
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ title:'', req_ref:'', tester:'', linear_id:'', notes:'', platform:'all', version:'' });
   const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
@@ -2244,6 +2330,21 @@ const DISPLAY_DEFAULTS: DisplaySettings = { theme: 'light', density: 'cosy', nav
 
 // ── Root ──────────────────────────────────────────────────────────────────
 export default function App() {
+  // Shared data state — lifted so all views can cross-reference
+  const [sharedStories, setSharedStories] = useState<UserStory[]>(STORIES_SEED);
+  const [sharedReqs, setSharedReqs] = useState<Req[]>(REQS_SEED as Req[]);
+  const [sharedTests, setSharedTests] = useState<UATTest[]>(UAT_SEED as UATTest[]);
+  const [focusId, setFocusId] = useState('');
+  const appDataValue = useMemo(() => ({ stories: sharedStories, reqs: sharedReqs, tests: sharedTests, setStories: setSharedStories, setReqs: setSharedReqs, setTests: setSharedTests, focusId, setFocusId }), [sharedStories, sharedReqs, sharedTests, focusId]);
+
+  return (
+    <AppData.Provider value={appDataValue}>
+      <AppInner />
+    </AppData.Provider>
+  );
+}
+
+function AppInner() {
   const [route, setRoute] = useState<Route>({ hub: '', section: '' });
   const [settings, setSettings] = useState<DisplaySettings>(DISPLAY_DEFAULTS);
   const [settingsOpen, setSettingsOpen] = useState(false);
