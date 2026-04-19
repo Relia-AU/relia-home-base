@@ -175,6 +175,64 @@ function Pill({ s, label }: { s: string; label?: string }) {
   return <span className={`pill ${STATUS_MAP[s] ?? 'p-draft'}`}><span className="dot" />{label ?? STATUS_LABEL[s] ?? s}</span>;
 }
 
+// ── Linear issue search ───────────────────────────────────────────────────
+function LinearSearch({ value, onChange, issues, placeholder = 'Search issues…' }: {
+  value: string;
+  onChange: (id: string, identifier: string) => void;
+  issues: LinearIssue[];
+  placeholder?: string;
+}) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setQuery(value); }, [value]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = query.trim()
+    ? issues.filter(i => `${i.identifier} ${i.title}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8)
+    : issues.slice(0, 8);
+
+  const clear = () => { setQuery(''); onChange('', ''); setOpen(false); };
+
+  return (
+    <div ref={ref} style={{ position:'relative' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:0 }}>
+        <input
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          style={{ fontFamily:'var(--font-body)', fontSize:13, color:'var(--fg1)', background:'var(--bg-page)', border:'1px solid var(--border)', borderRadius: value ? '4px 0 0 4px' : 4, padding:'7px 10px', outline:'none', width:'100%', transition:'border-color 0.1s' }}
+          onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); setQuery(value); } }}
+        />
+        {(query || value) && (
+          <button onClick={clear} style={{ border:'1px solid var(--border)', borderLeft:'none', borderRadius:'0 4px 4px 0', background:'var(--bg-page)', color:'var(--fg3)', padding:'7px 8px', cursor:'pointer', fontSize:12 }}>✕</button>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:6, boxShadow:'var(--shadow-lg)', zIndex:200, marginTop:2, maxHeight:260, overflowY:'auto' }}>
+          {filtered.map(i => (
+            <div key={i.id}
+              style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'1px solid var(--border)', display:'flex', gap:10, alignItems:'baseline' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--slate)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              onMouseDown={e => { e.preventDefault(); onChange(i.id, i.identifier); setQuery(`${i.identifier} — ${i.title}`); setOpen(false); }}>
+              <span style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--navy)', letterSpacing:'0.06em', flexShrink:0 }}>{i.identifier}</span>
+              <span style={{ fontSize:13, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{i.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Editable field ────────────────────────────────────────────────────────
 function EF({ value, onSave, multi = false, className = '' }: { value: string; onSave: (v: string) => void; multi?: boolean; className?: string }) {
   const [editing, setEditing] = useState(false);
@@ -589,25 +647,63 @@ function ResearchView() {
 }
 
 // ── OPS sections ──────────────────────────────────────────────────────────
+const NOTE_TYPES = ['standup','decision','planning','retro','feature request','bug','other'];
+
 function NotesView() {
   const [notes, setNotes] = useState(NOTES_DATA);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ title:'', type:'standup', body:'', tags:'' });
   const upd = (id: string, f: string, v: string) => setNotes(ns => ns.map(n => n.id === id ? {...n, [f]: v} : n));
+  const del = (id: string) => setNotes(ns => ns.filter(n => n.id !== id));
+
+  const add = () => {
+    const today = new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short'}).toUpperCase();
+    setNotes(ns => [{ id: String(Date.now()), date: today, title: form.title, type: form.type, body: form.body, tags: form.tags ? form.tags.split(',').map(t=>t.trim()).filter(Boolean) : [form.type] }, ...ns]);
+    setForm({ title:'', type:'standup', body:'', tags:'' });
+    setAdding(false);
+  };
+
   return (
     <div className="hub-page">
       <div className="breadcrumb"><span>#II</span><span className="sep">·</span><b>Ops</b><span className="sep">·</span><b>Notes & decisions</b></div>
       <div className="section-head">
         <h2>Notes <em>&amp; decisions</em></h2>
-        <button className="btn btn-primary btn-sm"><Ic n="plus" />Add note</button>
+        <button className="btn btn-primary btn-sm" onClick={() => setAdding(a => !a)}><Ic n="plus" />{adding?'Cancel':'Add note'}</button>
       </div>
+
+      {adding && (
+        <div className="uat-form" style={{ marginBottom:16 }}>
+          <div className="form-grid">
+            <div className="form-field"><label>Title</label><input value={form.title} onChange={e => setForm(f=>({...f,title:e.target.value}))} placeholder="Standup — Mon, Pricing decision…" /></div>
+            <div className="form-field"><label>Type</label>
+              <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))}>
+                {NOTE_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+              </select>
+            </div>
+            <div className="form-field full"><label>Content</label><textarea value={form.body} onChange={e => setForm(f=>({...f,body:e.target.value}))} placeholder="What was discussed, decided, or requested?" /></div>
+            <div className="form-field full"><label>Tags (comma separated, optional)</label><input value={form.tags} onChange={e => setForm(f=>({...f,tags:e.target.value}))} placeholder="weekly, ios, pricing" /></div>
+          </div>
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={() => setAdding(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={add} disabled={!form.title}>Add note</button>
+          </div>
+        </div>
+      )}
+
+      {notes.length === 0 && !adding && <div style={{ padding:'40px 0', color:'var(--fg3)', fontSize:13, textAlign:'center' }}>No notes yet. Add your first above.</div>}
+
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:12 }}>
         {notes.map(n => (
           <div key={n.id} className="data-card" style={{ padding:'18px 20px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
               <EF value={n.title} onSave={v => upd(n.id,'title',v)} className="fw600" />
-              <span className="mono">{n.date}</span>
+              <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0, marginLeft:8 }}>
+                <span className="mono">{n.date}</span>
+                <button onClick={() => del(n.id)} style={{ background:'none', border:'none', color:'var(--fg3)', cursor:'pointer', fontSize:12, padding:0 }} title="Delete">✕</button>
+              </div>
             </div>
             <EF value={n.body} onSave={v => upd(n.id,'body',v)} multi className="mt8" />
-            <div style={{ display:'flex', gap:6, marginTop:10 }}>
+            <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
               {n.tags.map(t => <span key={t} style={{ fontFamily:'var(--font-mono)', fontSize:9, letterSpacing:'0.08em', textTransform:'uppercase', padding:'2px 6px', borderRadius:3, background:'var(--slate)', color:'var(--fg3)' }}>{t}</span>)}
             </div>
           </div>
@@ -1552,10 +1648,7 @@ function UATTestRow({ t, upd, linearIssues }: {
                   </div>
                   <div className="form-field">
                     <label>Link to Linear issue (optional)</label>
-                    <select value={attachLinear} onChange={e => setAttachLinear(e.target.value)}>
-                      <option value="">None</option>
-                      {linearIssues.map(i => <option key={i.id} value={i.identifier}>{i.identifier} — {i.title}</option>)}
-                    </select>
+                    <LinearSearch value={attachLinear} issues={linearIssues} onChange={(_id, identifier) => setAttachLinear(identifier)} placeholder="Search issues…" />
                   </div>
                   <label style={{ cursor:'pointer', marginBottom:1 }}>
                     <input ref={fileRef} type="file" accept="image/*,video/mp4" style={{ display:'none' }} onChange={upload} disabled={uploading} />
@@ -1649,7 +1742,9 @@ function UATView() {
             </div>
             <div className="form-field"><label>Release version</label><input value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="v0.9.0" /></div>
             <div className="form-field"><label>Requirement ref</label><select value={form.req_ref} onChange={e => setForm(f => ({...f, req_ref: e.target.value}))}><option value="">None</option>{REQS_SEED.map(r => <option key={r.ref} value={r.ref}>{r.ref} — {r.title}</option>)}</select></div>
-            <div className="form-field"><label>Linear issue</label><select value={form.linear_id} onChange={e => setForm(f => ({...f, linear_id: e.target.value}))}><option value="">None</option>{linearIssues.map(i => <option key={i.id} value={i.identifier}>{i.identifier} — {i.title}</option>)}</select></div>
+            <div className="form-field"><label>Linear issue</label>
+              <LinearSearch value={form.linear_id} issues={linearIssues} onChange={(_id, identifier) => setForm(f => ({...f, linear_id: identifier}))} />
+            </div>
             <div className="form-field"><label>Tester</label><input value={form.tester} onChange={e => setForm(f => ({...f, tester: e.target.value}))} placeholder="Name" /></div>
             <div className="form-field"><label>Notes</label><input value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} placeholder="Optional" /></div>
           </div>
