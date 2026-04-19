@@ -87,23 +87,27 @@ const HUBS = {
   dev: {
     num: '—', label: 'Dev',
     tagline: 'Build internals.',
-    desc: 'In-flight issues, requirements, UAT, activity log, and database schema.',
+    desc: 'In-flight issues, user stories, requirements, UAT, and activity log.',
     sections: [
       { group: 'Overview', items: [{ id: '', label: 'Overview' }] },
       { group: 'Work', items: [
-        { id: 'inflight', label: 'In flight' },
-        { id: 'activity', label: 'Activity' },
+        { id: 'inflight',    label: 'In flight' },
+        { id: 'activity',   label: 'Activity' },
+      ]},
+      { group: 'Product', items: [
+        { id: 'stories',      label: 'User stories' },
+        { id: 'requirements', label: 'Requirements' },
       ]},
       { group: 'Quality', items: [
-        { id: 'requirements', label: 'Requirements' },
-        { id: 'uat',          label: 'UAT' },
+        { id: 'uat', label: 'UAT' },
       ]},
     ],
     overviewCards: [
-      { n: '01', id: 'inflight',     title: 'In flight',     desc: 'Live Linear issues — list and activity views.' },
-      { n: '02', id: 'requirements', title: 'Requirements',  desc: 'Functional and non-functional requirements with MoSCoW priority.' },
-      { n: '03', id: 'uat',          title: 'UAT',           desc: 'User acceptance tests — add, edit, link to Linear issues.' },
-      { n: '04', id: 'activity',     title: 'Activity',      desc: 'Everything that happened across the team in the last 48 hours.' },
+      { n: '01', id: 'inflight',     title: 'In flight',      desc: 'Live Linear issues — list and activity views.' },
+      { n: '02', id: 'stories',      title: 'User stories',   desc: 'As a tradie, I want to… — BDD stories linked to Linear and requirements.' },
+      { n: '03', id: 'requirements', title: 'Requirements',   desc: 'FR/NFR with MoSCoW priority, platform, developer, and story link.' },
+      { n: '04', id: 'uat',          title: 'UAT',            desc: 'User acceptance tests with image uploads and Linear linking.' },
+      { n: '05', id: 'activity',     title: 'Activity',       desc: 'Everything that happened across the team.' },
     ],
   },
 };
@@ -1410,6 +1414,196 @@ function ActivityView() {
   );
 }
 
+// ── User stories seed ─────────────────────────────────────────────────────
+const STORIES_SEED = [
+  // Voice & Transcription
+  { id:'us1', ref:'US-001', persona:'tradie',       platform:'ios',     status:'done',        developer:'jon',   i_want_to:'describe a job by voice in under 60 seconds',          so_that:'I can create a quote without stopping to type mid-job',        linear_ids:['REL-5','REL-6','REL-8','REL-9','REL-88'],  acceptance_criteria:'Voice captured, transcript editable, trade terms recognised, mic errors handled gracefully' },
+  { id:'us2', ref:'US-002', persona:'tradie',       platform:'ios',     status:'in_progress', developer:'jon',   i_want_to:'have trade-specific vocabulary recognised accurately',  so_that:'I don\'t have to correct "downlights" to "down lights" every time', linear_ids:['REL-79'],  acceptance_criteria:'Trade vocab seeded per trade type; confidence score shown for ambiguous terms' },
+  // AI extraction
+  { id:'us3', ref:'US-003', persona:'tradie',       platform:'backend', status:'done',        developer:'jon',   i_want_to:'have materials automatically extracted from my job description', so_that:'I don\'t have to build a materials list from scratch',    linear_ids:['REL-10','REL-11','REL-13','REL-105'],  acceptance_criteria:'Materials list generated in <5s; extraction accuracy >90% on common trade jobs' },
+  { id:'us4', ref:'US-004', persona:'tradie',       platform:'ios',     status:'done',        developer:'jon',   i_want_to:'see confidence scores on extracted materials',          so_that:'I know which items to double-check before sending the quote', linear_ids:['REL-78','REL-106'],  acceptance_criteria:'Low-confidence items flagged in UI; user can correct and that correction trains the model' },
+  // Pricing
+  { id:'us5', ref:'US-005', persona:'tradie',       platform:'ios',     status:'in_progress', developer:'jon',   i_want_to:'see live Bunnings pricing on my materials list',        so_that:'my quote reflects real costs without manual lookups',          linear_ids:['REL-16','REL-17','REL-80','REL-98','REL-120','REL-121'],  acceptance_criteria:'Prices pulled from Bunnings API; fallback to manual entry when unavailable; stock status shown' },
+  { id:'us6', ref:'US-006', persona:'tradie',       platform:'ios',     status:'done',        developer:'jon',   i_want_to:'manually enter prices when live pricing isn\'t available', so_that:'I can still complete a quote even if the API is down',       linear_ids:['REL-109'],  acceptance_criteria:'Any material can have price manually overridden; override persists on save' },
+  // PDF & Quotes
+  { id:'us7', ref:'US-007', persona:'tradie',       platform:'ios',     status:'done',        developer:'jon',   i_want_to:'generate a professional PDF quote',                    so_that:'I can share a branded, compliant document with my customer',   linear_ids:['REL-114','REL-67','REL-21'],  acceptance_criteria:'PDF includes tradie details, line items, labour, GST, total; labelled Quote or Estimate per selection' },
+  { id:'us8', ref:'US-008', persona:'tradie',       platform:'ios',     status:'in_progress', developer:'jon',   i_want_to:'include site photos in my quote PDF',                  so_that:'customers can see the scope of work',                          linear_ids:['REL-71','REL-72','REL-73','REL-74','REL-75'],  acceptance_criteria:'Photos captured in-app, compressed, stored in Supabase, embedded in PDF' },
+  // Customer sharing
+  { id:'us9', ref:'US-009', persona:'tradie',       platform:'ios',     status:'in_progress', developer:'jon',   i_want_to:'share a quote with a customer via a unique link',      so_that:'they can view it on any device without needing the app',       linear_ids:['REL-115'],  acceptance_criteria:'Share token generated; web page renders quote from Supabase; token expires after 30 days' },
+  { id:'us10', ref:'US-010', persona:'end_customer', platform:'web',    status:'in_progress', developer:'jon',   i_want_to:'accept or decline a quote online',                     so_that:'I don\'t have to call the tradie to confirm',                  linear_ids:['REL-116'],  acceptance_criteria:'Accept/decline buttons on web quote page; tradie notified by email on action; status updated in app' },
+  // Estimate management
+  { id:'us11', ref:'US-011', persona:'tradie',       platform:'ios',    status:'done',        developer:'jon',   i_want_to:'see all my estimates in one list',                     so_that:'I can track what\'s been sent, accepted, and paid',            linear_ids:['REL-65','REL-107'],  acceptance_criteria:'Home screen shows all estimates from Supabase; searchable and filterable by status' },
+  { id:'us12', ref:'US-012', persona:'tradie',       platform:'ios',    status:'in_progress', developer:'jon',   i_want_to:'manually update the status of an estimate',            so_that:'I can track jobs that were agreed verbally or outside the app', linear_ids:['REL-117'],  acceptance_criteria:'Status transitions available in UI: Draft → Sent → Accepted → In Progress → Invoiced → Paid' },
+  // Auth & profile
+  { id:'us13', ref:'US-013', persona:'tradie',       platform:'ios',    status:'done',        developer:'jon',   i_want_to:'sign in with Apple',                                   so_that:'I don\'t need another password',                               linear_ids:['REL-63','REL-85'],  acceptance_criteria:'Apple Sign-In works in app; Supabase auth linked; account deletion flow available (App Store req)' },
+  { id:'us14', ref:'US-014', persona:'tradie',       platform:'ios',    status:'done',        developer:'jon',   i_want_to:'set my trade type and business details once',          so_that:'every quote is pre-filled with my info',                       linear_ids:['REL-81','REL-64'],  acceptance_criteria:'Business name, ABN, trade, contact saved to profiles table; applied to all new quotes' },
+  // Subscription
+  { id:'us15', ref:'US-015', persona:'tradie',       platform:'ios',    status:'draft',       developer:'',      i_want_to:'subscribe monthly or yearly',                          so_that:'I can access premium features like live pricing and unlimited quotes', linear_ids:['REL-24','REL-25'],  acceptance_criteria:'RevenueCat paywall shown after free trial; monthly and yearly plans available; subscription status enforced' },
+  // Analytics
+  { id:'us16', ref:'US-016', persona:'relia_team',   platform:'backend',status:'draft',       developer:'',      i_want_to:'track how tradies use the quoting flow',               so_that:'we can identify drop-off points and improve conversion',        linear_ids:['REL-50','REL-113'],  acceptance_criteria:'PostHog integrated; key events tracked: voice start, materials confirmed, quote sent, accepted' },
+  // Legal & compliance (operational — not engineering)
+  { id:'us17', ref:'US-017', persona:'relia_team',   platform:'all',    status:'in_progress', developer:'nhung', i_want_to:'have published privacy policy and T&Cs URLs',          so_that:'we meet App Store requirements and are legally compliant',      linear_ids:['REL-77','REL-34','REL-35','REL-36'],  acceptance_criteria:'Privacy policy live at reliaplatform.io/privacy; T&Cs at /terms; support URL at /support; links in app and App Store listing' },
+  // App Store launch
+  { id:'us18', ref:'US-018', persona:'relia_team',   platform:'ios',    status:'draft',       developer:'nhung', i_want_to:'submit the app to the App Store',                      so_that:'tradies can download Relia from the App Store',                linear_ids:['REL-31','REL-32','REL-33','REL-37','REL-38','REL-41','REL-42','REL-43'],  acceptance_criteria:'Apple Developer account enrolled; app listing complete; screenshots uploaded; review passed' },
+  // Customer review
+  { id:'us19', ref:'US-019', persona:'tradie',       platform:'web',    status:'draft',       developer:'',      i_want_to:'request a private review from a customer after a job', so_that:'I can build a track record and improve my quoting',             linear_ids:['REL-118'],  acceptance_criteria:'Review request sent via web form post-job completion; ratings private to tradie (not public)' },
+];
+
+type UserStory = typeof STORIES_SEED[0];
+const PERSONAS = ['tradie','end_customer','relia_team','admin'] as const;
+const PLATFORMS = ['ios','android','web','backend','all'] as const;
+const STORY_STATUSES = ['draft','ready','in_progress','done','deferred'] as const;
+
+function UserStoriesView() {
+  const [stories, setStories] = useState<UserStory[]>(STORIES_SEED);
+  const [adding, setAdding] = useState(false);
+  const [expanded, setExpanded] = useState<string|null>(null);
+  const [filterPersona, setFilterPersona] = useState('all');
+  const [filterPlatform, setFilterPlatform] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [linearIssues, setLinearIssues] = useState<LinearIssue[]>([]);
+  const [form, setForm] = useState({ persona:'tradie', platform:'ios', i_want_to:'', so_that:'', acceptance_criteria:'', developer:'', linear_ids:'' });
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_LINEAR_API_KEY;
+    if (!key) return;
+    fetch('https://api.linear.app/graphql', { method:'POST', headers:{'Content-Type':'application/json','Authorization':key}, body: JSON.stringify({ query:`{ issues(first:150) { nodes { id identifier title state { name type } priority team { name } labels { nodes { name color } } url assignee { name displayName } } } }` }) })
+      .then(r=>r.json()).then((d:{data?:{issues?:{nodes:LinearIssue[]}}}) => setLinearIssues(d.data?.issues?.nodes??[]));
+  }, []);
+
+  const add = () => {
+    const nextRef = `US-${String(stories.length+1).padStart(3,'0')}`;
+    setStories(ss => [...ss, { id: String(Date.now()), ref: nextRef, status:'draft', ...form, linear_ids: form.linear_ids.split(',').map(s=>s.trim()).filter(Boolean), acceptance_criteria: form.acceptance_criteria }]);
+    setForm({ persona:'tradie', platform:'ios', i_want_to:'', so_that:'', acceptance_criteria:'', developer:'', linear_ids:'' });
+    setAdding(false);
+  };
+
+  const upd = (id: string, f: string, v: string | string[]) => setStories(ss => ss.map(s => s.id===id ? {...s,[f]:v} : s));
+
+  const filtered = stories.filter(s => {
+    if (filterPersona !== 'all' && s.persona !== filterPersona) return false;
+    if (filterPlatform !== 'all' && s.platform !== filterPlatform) return false;
+    if (filterStatus !== 'all' && s.status !== filterStatus) return false;
+    return true;
+  });
+
+  const personaColor: Record<string,string> = { tradie:'var(--navy)', end_customer:'var(--bottle-deep)', relia_team:'var(--butter-deep)', admin:'var(--red)' };
+  const platformColor: Record<string,string> = { ios:'var(--blue-hover)', android:'var(--bottle-deep)', web:'var(--butter-deep)', backend:'var(--navy-soft)', all:'var(--fg3)' };
+  const statusColor: Record<string,[string,string]> = { draft:['var(--slate)','var(--fg3)'], ready:['var(--blue-soft)','var(--blue-hover)'], in_progress:['var(--butter-soft)','var(--butter-deep)'], done:['var(--bottle-soft)','var(--bottle-deep)'], deferred:['var(--red-soft)','var(--red-deep)'] };
+
+  return (
+    <div className="hub-page">
+      <div className="breadcrumb"><span>Dev</span><span className="sep">·</span><b>User stories</b></div>
+      <div className="section-head">
+        <h2>User <em>stories</em></h2>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <span className="meta">{filtered.length} of {stories.length}</span>
+          <button className="btn btn-primary btn-sm" onClick={() => setAdding(a=>!a)}><Ic n="plus" />{adding?'Cancel':'Add story'}</button>
+        </div>
+      </div>
+
+      {/* Note on operational vs technical */}
+      <div className="editors-note" style={{marginBottom:20}}>
+        <p>Stories marked <b>relia_team</b> are operational tasks (legal, App Store, marketing) — they belong in Ops, not engineering. Stories marked <b>tradie</b> or <b>end_customer</b> drive the product. Consider splitting mixed Linear issues (e.g. REL-35 "T&Cs URL" = one ops task for writing + one engineering task for the link).</p>
+      </div>
+
+      {adding && (
+        <div className="uat-form" style={{marginBottom:20}}>
+          <div className="form-grid">
+            <div className="form-field"><label>Persona</label><select value={form.persona} onChange={e=>setForm(f=>({...f,persona:e.target.value}))}>{PERSONAS.map(p=><option key={p} value={p}>{p.replace('_',' ')}</option>)}</select></div>
+            <div className="form-field"><label>Platform</label><select value={form.platform} onChange={e=>setForm(f=>({...f,platform:e.target.value}))}>{PLATFORMS.map(p=><option key={p}>{p}</option>)}</select></div>
+            <div className="form-field full"><label>I want to…</label><input value={form.i_want_to} onChange={e=>setForm(f=>({...f,i_want_to:e.target.value}))} placeholder="describe the action or goal" /></div>
+            <div className="form-field full"><label>So that…</label><input value={form.so_that} onChange={e=>setForm(f=>({...f,so_that:e.target.value}))} placeholder="the benefit or outcome" /></div>
+            <div className="form-field full"><label>Acceptance criteria</label><textarea value={form.acceptance_criteria} onChange={e=>setForm(f=>({...f,acceptance_criteria:e.target.value}))} placeholder="When… then… (one per line)" /></div>
+            <div className="form-field"><label>Developer</label><input value={form.developer} onChange={e=>setForm(f=>({...f,developer:e.target.value}))} placeholder="jon, nhung…" /></div>
+            <div className="form-field"><label>Linear issues (comma separated)</label><input value={form.linear_ids} onChange={e=>setForm(f=>({...f,linear_ids:e.target.value}))} placeholder="REL-5, REL-6" /></div>
+          </div>
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={()=>setAdding(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={add} disabled={!form.i_want_to||!form.so_that}>Add story</button>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+        <select value={filterPersona} onChange={e=>setFilterPersona(e.target.value)} style={{fontFamily:'var(--font-body)',fontSize:12,padding:'5px 10px',borderRadius:'var(--radius-md)',border:'1px solid var(--border)',background:'var(--bg-card)',color:filterPersona==='all'?'var(--fg3)':'var(--fg1)',cursor:'pointer',outline:'none'}}>
+          <option value="all">All personas</option>{PERSONAS.map(p=><option key={p} value={p}>{p.replace('_',' ')}</option>)}
+        </select>
+        <select value={filterPlatform} onChange={e=>setFilterPlatform(e.target.value)} style={{fontFamily:'var(--font-body)',fontSize:12,padding:'5px 10px',borderRadius:'var(--radius-md)',border:'1px solid var(--border)',background:'var(--bg-card)',color:filterPlatform==='all'?'var(--fg3)':'var(--fg1)',cursor:'pointer',outline:'none'}}>
+          <option value="all">All platforms</option>{PLATFORMS.map(p=><option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{fontFamily:'var(--font-body)',fontSize:12,padding:'5px 10px',borderRadius:'var(--radius-md)',border:'1px solid var(--border)',background:'var(--bg-card)',color:filterStatus==='all'?'var(--fg3)':'var(--fg1)',cursor:'pointer',outline:'none'}}>
+          <option value="all">All statuses</option>{STORY_STATUSES.map(s=><option key={s} value={s}>{s.replace('_',' ')}</option>)}
+        </select>
+        {(filterPersona!=='all'||filterPlatform!=='all'||filterStatus!=='all') && <button className="btn btn-ghost btn-sm" onClick={()=>{setFilterPersona('all');setFilterPlatform('all');setFilterStatus('all');}}>Clear</button>}
+      </div>
+
+      <div style={{display:'flex',flexDirection:'column',gap:1,background:'var(--border)',border:'1px solid var(--border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
+        {filtered.map(s => (
+          <div key={s.id}>
+            {/* Row */}
+            <div style={{display:'grid',gridTemplateColumns:'80px 80px 1fr 120px auto',gap:16,alignItems:'center',padding:'12px 20px',background:'var(--bg-card)',cursor:'pointer'}} onClick={()=>setExpanded(e=>e===s.id?null:s.id)}>
+              <span className="mono" style={{fontSize:10}}>{s.ref}</span>
+              <div style={{display:'flex',flexDirection:'column',gap:3}}>
+                <span style={{fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.08em',textTransform:'uppercase',padding:'2px 6px',borderRadius:3,background:`${personaColor[s.persona]}18`,color:personaColor[s.persona]}}>{s.persona.replace('_',' ')}</span>
+                <span style={{fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.08em',textTransform:'uppercase',padding:'2px 6px',borderRadius:3,background:`${platformColor[s.platform]}18`,color:platformColor[s.platform]}}>{s.platform}</span>
+              </div>
+              <div>
+                <div style={{fontSize:13,fontWeight:500,color:'var(--fg1)'}}>As a <b>{s.persona.replace('_',' ')}</b>, I want to {s.i_want_to}</div>
+                <div style={{fontSize:12,color:'var(--fg3)',marginTop:2}}>So that {s.so_that}</div>
+              </div>
+              <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                {(Array.isArray(s.linear_ids)?s.linear_ids:[]).slice(0,3).map(id=>(
+                  <span key={id} style={{fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.06em',padding:'2px 5px',borderRadius:3,background:'var(--blue-soft)',color:'var(--blue-hover)'}}>{id}</span>
+                ))}
+                {(Array.isArray(s.linear_ids)?s.linear_ids:[]).length > 3 && <span style={{fontSize:10,color:'var(--fg3)'}}>+{(Array.isArray(s.linear_ids)?s.linear_ids:[]).length-3}</span>}
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',padding:'4px 8px',borderRadius:3,background:statusColor[s.status]?.[0]??'var(--slate)',color:statusColor[s.status]?.[1]??'var(--fg3)'}}>{s.status.replace('_',' ')}</span>
+                <span style={{color:'var(--fg3)',fontSize:14}}>{expanded===s.id?'▲':'▼'}</span>
+              </div>
+            </div>
+
+            {/* Expanded */}
+            {expanded===s.id && (
+              <div style={{padding:'16px 20px',background:'var(--slate-soft)',borderTop:'1px solid var(--border)'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:12}}>
+                  <div>
+                    <div className="mono" style={{marginBottom:6}}>Acceptance criteria</div>
+                    <EF value={s.acceptance_criteria||''} onSave={v=>upd(s.id,'acceptance_criteria',v)} multi />
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    <div>
+                      <div className="mono" style={{marginBottom:4}}>Status</div>
+                      <select value={s.status} onChange={e=>upd(s.id,'status',e.target.value)} style={{fontFamily:'var(--font-body)',fontSize:13,padding:'5px 8px',borderRadius:4,border:'1px solid var(--border)',background:'var(--bg-card)',cursor:'pointer',outline:'none'}}>
+                        {STORY_STATUSES.map(st=><option key={st} value={st}>{st.replace('_',' ')}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <div className="mono" style={{marginBottom:4}}>Developer</div>
+                      <EF value={s.developer||''} onSave={v=>upd(s.id,'developer',v)} />
+                    </div>
+                    <div>
+                      <div className="mono" style={{marginBottom:4}}>Linear issues</div>
+                      <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                        {(Array.isArray(s.linear_ids)?s.linear_ids:[]).map(id=>{
+                          const issue = linearIssues.find(i=>i.identifier===id);
+                          return <a key={id} href={issue?.url??'#'} target="_blank" rel="noopener noreferrer" style={{fontFamily:'var(--font-mono)',fontSize:10,letterSpacing:'0.06em',padding:'3px 7px',borderRadius:3,background:'var(--blue-soft)',color:'var(--blue-hover)',textDecoration:'none'}} title={issue?.title}>{id}</a>;
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RequirementsView() {
   const [reqs, setReqs] = useState(REQS_SEED);
   const [filter, setFilter] = useState<'all'|'functional'|'non_functional'>('all');
@@ -1434,7 +1628,7 @@ function RequirementsView() {
     const prefix = form.type === 'functional' ? 'FR' : 'NFR';
     const count = reqs.filter(r => r.type === form.type).length;
     const ref = `${prefix}-${String(count + 1).padStart(3,'0')}`;
-    const newReq = { ref, type: form.type, category: form.category, title: form.title, priority: form.priority, status: 'draft', linear_id: form.linear_id };
+    const newReq = { ref, type: form.type, category: form.category, title: form.title, priority: form.priority, status: 'draft', linear_id: form.linear_id, developer: (form as { developer?: string }).developer ?? '', platform: (form as { platform?: string }).platform ?? 'all', user_story: (form as { user_story?: string }).user_story ?? '' };
     setReqs(rs => [...rs, newReq]);
     setForm({ type:'functional', category:'', title:'', description:'', priority:'must_have', linear_id:'' });
     setAdding(false);
@@ -1504,11 +1698,17 @@ function RequirementsView() {
 
       <div className="data-card">
         <table className="data-table">
-          <thead><tr><th>Ref</th><th>Category</th><th>Title</th><th>Priority</th><th>Status</th><th>Linear</th></tr></thead>
+          <thead><tr><th>Ref</th><th>User story</th><th>Category</th><th>Title</th><th>Platform</th><th>Developer</th><th>Priority</th><th>Status</th><th>Linear</th></tr></thead>
           <tbody>
             {shown.map(r => (
               <tr key={r.ref}>
                 <td><span className="mono">{r.ref}</span></td>
+                <td>
+                  <select value={(r as { user_story?: string }).user_story ?? ''} onChange={e => upd(r.ref,'user_story',e.target.value)} style={{ fontFamily:'var(--font-mono)', fontSize:10, background:'transparent', border:'none', color:'var(--navy)', cursor:'pointer', padding:0 }}>
+                    <option value="">—</option>
+                    {STORIES_SEED.map(s => <option key={s.ref} value={s.ref}>{s.ref}</option>)}
+                  </select>
+                </td>
                 <td>
                   <select value={r.category} onChange={e => upd(r.ref,'category',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:12, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0, width:'100%' }}>
                     {['Voice Capture','Quoting','Follow-up','Onboarding','Materials','Performance','Security','Availability','Other'].map(c => <option key={c} value={c}>{c}</option>)}
@@ -1516,6 +1716,12 @@ function RequirementsView() {
                   </select>
                 </td>
                 <td className="fw600"><EF value={r.title} onSave={v => upd(r.ref,'title',v)} /></td>
+                <td>
+                  <select value={(r as { platform?: string }).platform ?? 'all'} onChange={e => upd(r.ref,'platform',e.target.value)} style={{ fontFamily:'var(--font-mono)', fontSize:10, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0 }}>
+                    {['all','ios','android','web','backend'].map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </td>
+                <td><EF value={(r as { developer?: string }).developer ?? ''} onSave={v => upd(r.ref,'developer',v)} /></td>
                 <td>
                   <select value={r.priority} onChange={e => upd(r.ref,'priority',e.target.value)} style={{ fontFamily:'var(--font-body)', fontSize:11, background:'transparent', border:'none', color:'var(--fg2)', cursor:'pointer', padding:0 }}>
                     {['must_have','should_have','could_have','wont_have'].map(p => <option key={p} value={p}>{p.replace('_',' ')}</option>)}
@@ -1886,6 +2092,7 @@ export default function App() {
     if (hub === 'dev') {
       if (route.section === 'inflight')     return <InflightView />;
       if (route.section === 'activity')     return <ActivityView />;
+      if (route.section === 'stories')      return <UserStoriesView />;
       if (route.section === 'requirements') return <RequirementsView />;
       if (route.section === 'uat')          return <UATView />;
     }
