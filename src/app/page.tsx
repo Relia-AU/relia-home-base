@@ -1224,9 +1224,12 @@ function DevDashboard() {
       .then(r=>r.json()).then((d:{data?:{cycles?:{nodes:LinearCycle[]}}}) => {
         const sorted = [...(d.data?.cycles?.nodes??[])].sort((a,b)=>b.number-a.number);
         setCycles(sorted);
-        // Default to most recently started non-completed cycle
-        const active = sorted.find(c=>!c.completedAt) ?? sorted[0];
-        if (active) setSelectedCycleId(active.id);
+        // Default to the cycle containing today's date (current cycle by time)
+        const now = Date.now();
+        const current = sorted.find(c => !c.completedAt && new Date(c.startsAt).getTime() <= now && new Date(c.endsAt).getTime() >= now);
+        const fallback = sorted.find(c => !c.completedAt) ?? sorted[0];
+        const chosen = current ?? fallback;
+        if (chosen) setSelectedCycleId(chosen.id);
       });
     // Urgent issues from Supabase cache, fallback populated after cycles load
     loadLinearFromSupabase().then(all => { if (all.length > 0) setUrgentIssues(all.filter(i => i.priority <= 2 && i.status !== 'done' && i.status !== 'cancelled')); });
@@ -1531,9 +1534,13 @@ function InflightView() {
       fetch('https://api.linear.app/graphql', { method:'POST', headers:{'Content-Type':'application/json','Authorization':key}, body: JSON.stringify({ query: `{ cycles(first:10, orderBy:updatedAt) { nodes { id name number startsAt endsAt completedAt progress issues { nodes { id identifier title state { name type } priority assignee { name displayName } team { name } labels { nodes { name color } } url } } } } }` }) }).then(r=>r.json())
     ]).then(async ([hasData, cycleData]: [boolean, { data?: { cycles?: { nodes: LinearCycle[] } } }]) => {
       const fetchedCycles = cycleData?.data?.cycles?.nodes ?? [];
-      setCycles([...fetchedCycles].sort((a,b) => b.number - a.number));
-      const activeCycle = [...fetchedCycles].sort((a,b) => b.number - a.number).find(c => !c.completedAt);
-      if (activeCycle) setCycleFilter(activeCycle.id);
+      const sorted = [...fetchedCycles].sort((a,b) => b.number - a.number);
+      setCycles(sorted);
+      // Default to the cycle containing today's date
+      const now = Date.now();
+      const current = sorted.find(c => !c.completedAt && new Date(c.startsAt).getTime() <= now && new Date(c.endsAt).getTime() >= now);
+      const chosen = current ?? sorted.find(c => !c.completedAt) ?? sorted[0];
+      if (chosen) setCycleFilter(chosen.id);
       // If Supabase is empty, do a full sync
       if (!hasData) await doSync(true);
       setLoading(false);
